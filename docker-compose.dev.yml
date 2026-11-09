@@ -1,0 +1,37 @@
+# Dev z hot reloadem: docker compose -f docker-compose.dev.yml up
+# Front: http://localhost:5173  (proxy /api -> server:3000)
+services:
+  server:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npm run dev"
+    environment:
+      NODE_ENV: development
+      DB_PATH: /data/gwiazdka.db
+      ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server:/app
+      - server-modules:/app/node_modules
+      - dev-data:/data
+
+  client:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npm run dev"
+    environment:
+      API_PROXY_TARGET: http://server:3000
+      CHOKIDAR_USEPOLLING: "1"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - client-modules:/app/node_modules
+    depends_on:
+      - server
+
+volumes:
+  server-modules:
+  client-modules:
+  dev-data:

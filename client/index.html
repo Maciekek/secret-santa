@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Znaczniki __X__ podmienia serwer (prod) albo plugin Vite (dev) — patrz server/src/seo.js -->
+    <title>__TITLE__</title>
+    <meta name="description" content="__DESCRIPTION__" />
+    <meta name="robots" content="__ROBOTS__" />
+    <link rel="canonical" href="__URL__" />
+    <meta name="theme-color" content="#8e1b1f" />
+    <meta name="application-name" content="Gwiazdka" />
+    <meta name="apple-mobile-web-app-title" content="Gwiazdka" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Gwiazdka" />
+    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:title" content="__TITLE__" />
+    <meta property="og:description" content="__DESCRIPTION__" />
+    <meta property="og:url" content="__URL__" />
+    <meta property="og:image" content="__ORIGIN__/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Gwiazdka — świąteczne losowanie prezentów" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="__TITLE__" />
+    <meta name="twitter:description" content="__DESCRIPTION__" />
+    <meta name="twitter:image" content="__ORIGIN__/og.png" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-512.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Gwiazdka",
+        "url": "__ORIGIN__/",
+        "description": "Darmowe świąteczne losowanie prezentów online dla rodziny i przyjaciół. Załóż losowanie, wyślij link — każdy wylosuje osobę, której zrobi prezent pod choinkę.",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Any",
+        "inLanguage": "pl",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "PLN" }
+      }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <noscript>Gwiazdka — świąteczne losowanie prezentów. Włącz JavaScript, aby losować.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

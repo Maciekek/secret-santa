@@ -1,0 +1,10 @@
+{
+  "name": "Gwiazdka — losowanie prezentów",
+  "short_name": "Gwiazdka",
+  "lang": "pl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#8e1b1f",
+  "theme_color": "#8e1b1f",
+  "icons": [{ "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }]
+}

@@ -1,0 +1,66 @@
+# 🎄 Gwiazdka
+
+Świąteczne losowanie prezentów — kto komu robi prezent pod choinkę.
+
+## Jak działa
+
+1. Ktoś zakłada losowanie (np. „Wigilia u Kowalskich”) i dodaje uczestników (min. 3).
+2. Serwer od razu losuje pary jako permutację bez punktów stałych — każdy daje i dostaje
+   dokładnie jeden prezent, nikt nie losuje siebie. Pary są zapisane w SQLite **zaszyfrowane**
+   (AES-256-GCM, klucz z `APP_SECRET`), więc nie widać ich nawet przy podglądzie bazy.
+3. Organizator dostaje dwa linki:
+   - `/d/<slug>` — do wysłania rodzinie,
+   - `/d/<slug>/organizator#<klucz>` — status: kto już losował (bez par).
+4. Uczestnik wchodzi w link, wybiera swoje imię, losuje. Wynik trafia do `localStorage`,
+   a imię zostaje zablokowane dla kolejnych prób.
+5. Admin (`/admin`, hasło z `ADMIN_PASSWORD`) widzi wszystkie losowania i status uczestników.
+   Pary są ukryte — podgląd tylko przytrzymując 🔒 przy osobie (każdy podgląd logowany).
+
+## Stack
+
+- `server/` — Node 24, Express 5, wbudowany `node:sqlite` (brak natywnych zależności).
+- `client/` — React 19 + Vite + React Router.
+- Prod: jeden kontener — Express serwuje API i zbudowany frontend.
+
+## Dev
+
+```bash
+make dev          # albo: docker compose -f docker-compose.dev.yml up
+```
+
+- front: http://localhost:5173 (hot reload), API: http://localhost:3000
+- admin w dev: hasło `admin`
+- testy backendu: `make test`
+
+## Prod (VPS / Mikrus)
+
+```bash
+git clone <repo> gwiazdka && cd gwiazdka
+cp .env.example .env    # ustaw ADMIN_PASSWORD, APP_SECRET (openssl rand -base64 48), HOST_PORT, PUBLIC_URL
+make prod               # docker compose up -d --build
+```
+
+- Na Mikrusie ustaw `HOST_PORT` na przydzielony port i wystaw go przez domenę
+  `*.byst.re` / `*.wykr.es` albo własny reverse proxy z HTTPS.
+- Baza leży w wolumenie `gwiazdka-data` (`/data/gwiazdka.db`). Kopia: `make backup`.
+- **Nie zmieniaj `APP_SECRET`** po utworzeniu losowań — stare pary przestaną się odszyfrowywać.
+
+## API
+
+- `POST /api/draws` `{ name, participants: string[] }` → `{ slug, organizerKey }`
+- `GET /api/draws/:slug` → nazwa + uczestnicy ze statusem `drawn`
+- `POST /api/draws/:slug/draw` `{ participantId }` → `{ name, target }` (409 gdy już losował)
+- `GET /api/draws/:slug/manage`, `POST /api/draws/:slug/manage/reshuffle` — nagłówek `X-Organizer-Key`
+- `POST /api/admin/login` `{ password }` → `{ token }`
+- `GET /api/admin/draws`, `GET /api/admin/draws/:slug`,
+  `POST /api/admin/draws/:slug/participants/:id/reveal`, `POST /api/admin/draws/:slug/reshuffle`,
+  `DELETE /api/admin/draws/:slug` — nagłówek `Authorization: Bearer <token>`
+
+## SEO / Open Graph
+
+- Meta (title, description, canonical, OG, Twitter, JSON-LD) są w `client/index.html` jako znaczniki `__X__`.
+  W prod podmienia je serwer per ścieżka (`server/src/seo.js`), w dev plugin w `vite.config.js`.
+- Link do losowania (`/d/<slug>`) ma w podglądzie (Messenger, WhatsApp…) nazwę losowania.
+- `/` — indeksowane; `/d/*`, `/admin` — `noindex` (meta + nagłówek `X-Robots-Tag`).
+- `robots.txt` i `sitemap.xml` generuje serwer z `PUBLIC_URL`.
+- Obrazek OG: `client/public/og.png` (1200×630), ikona: `client/public/icon-512.png`.
