@@ -1,13 +1,24 @@
 # Produkcja (VPS): docker compose up -d --build
+# TLS i routing robi wspólny stack vps-proxy (Caddy czyta labele poniżej) — bez wystawiania portu.
+name: secret-santa
+
 services:
   app:
     build: .
-    image: gwiazdka:latest
-    container_name: gwiazdka
+    image: secret-santa:latest
+    container_name: secret-santa
     restart: unless-stopped
     env_file: .env
-    ports:
-      - "${HOST_PORT:-3000}:3000"
+    environment:
+      PUBLIC_URL: https://${DOMAIN}
+    networks:
+      - web
+    labels:
+      caddy: ${DOMAIN}
+      caddy.import: secure
+      caddy.reverse_proxy: "{{upstreams 3000}}"
+      caddy_1: www.${DOMAIN}
+      caddy_1.redir: https://${DOMAIN}{uri} permanent
     volumes:
       - gwiazdka-data:/data
     mem_limit: 192m
@@ -19,3 +30,8 @@ services:
 
 volumes:
   gwiazdka-data:
+
+# Tworzona przez stack vps-proxy
+networks:
+  web:
+    external: true

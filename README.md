@@ -35,13 +35,14 @@ make dev          # albo: docker compose -f docker-compose.dev.yml up
 ## Prod (VPS / Mikrus)
 
 ```bash
-git clone <repo> gwiazdka && cd gwiazdka
-cp .env.example .env    # ustaw ADMIN_PASSWORD, APP_SECRET (openssl rand -base64 48), HOST_PORT, PUBLIC_URL
+git clone git@github.com:Maciekek/secret-santa.git && cd secret-santa
+cp .env.example .env    # ustaw ADMIN_PASSWORD, APP_SECRET (openssl rand -base64 48), DOMAIN
 make prod               # docker compose up -d --build
 ```
 
-- Na Mikrusie ustaw `HOST_PORT` na przydzielony port i wystaw go przez domenę
-  `*.byst.re` / `*.wykr.es` albo własny reverse proxy z HTTPS.
+- Kontener nie wystawia portu. Podpina się do sieci `web` wspólnego stacku vps-proxy
+  (caddy-docker-proxy), który po labelach robi routing i HTTPS dla `DOMAIN`.
+- Rekord DNS `A`/`AAAA` dla `DOMAIN` (i `www.`) musi wskazywać na VPS.
 - Baza leży w wolumenie `gwiazdka-data` (`/data/gwiazdka.db`). Kopia: `make backup`.
 - **Nie zmieniaj `APP_SECRET`** po utworzeniu losowań — stare pary przestaną się odszyfrowywać.
 
