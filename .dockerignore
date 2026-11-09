@@ -6,3 +6,6 @@
 .git
 .idea
 server/test
+
+.github
+deploy

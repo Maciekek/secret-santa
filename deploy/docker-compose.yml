@@ -1,11 +1,11 @@
-# Produkcja (VPS): docker compose up -d --build
+# Produkcja: gotowy obraz z GHCR (budowany przez GitHub Actions). Na serwerze nic się nie buduje.
 # TLS i routing robi wspólny stack vps-proxy (Caddy czyta labele poniżej) — bez wystawiania portu.
+# Zobacz deploy/README.md.
 name: secret-santa
 
 services:
   app:
-    build: .
-    image: secret-santa:latest
+    image: ghcr.io/maciekek/secret-santa:${SECRET_SANTA_TAG:-latest}
     container_name: secret-santa
     restart: unless-stopped
     env_file: .env

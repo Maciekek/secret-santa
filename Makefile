@@ -1,25 +1,16 @@
-.PHONY: dev dev-down prod prod-down logs test backup
+.PHONY: dev dev-down test preview
 
+# Dev z hot reloadem: front http://localhost:5173, API :3000
 dev:
 	docker compose -f docker-compose.dev.yml up
 
 dev-down:
 	docker compose -f docker-compose.dev.yml down
 
-prod:
-	docker compose up -d --build
-
-prod-down:
-	docker compose down
-
-logs:
-	docker compose logs -f --tail=100
-
 test:
 	docker run --rm -v "$(PWD)/server":/app -w /app node:24-alpine sh -c "npm ci --no-audit --no-fund -s && npm test"
 
-# Kopia bazy z kontenera prod do ./backup-YYYYMMDD.db
-backup:
-	docker compose exec app node -e "const{DatabaseSync}=require('node:sqlite');new DatabaseSync(process.env.DB_PATH).exec(\"VACUUM INTO '/data/backup.db'\")"
-	docker compose cp app:/data/backup.db ./backup-$$(date +%Y%m%d).db
-	docker compose exec app rm /data/backup.db
+# Lokalny podgląd obrazu produkcyjnego: http://localhost:3000 (hasło admina: admin)
+preview:
+	docker build -t secret-santa:local .
+	docker run --rm -p 3000:3000 -e ADMIN_PASSWORD=admin -e APP_SECRET=local-preview-secret-min-32-znaki-xx secret-santa:local

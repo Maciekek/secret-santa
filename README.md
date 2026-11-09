@@ -34,19 +34,11 @@ make dev          # albo: docker compose -f docker-compose.dev.yml up
 
 ## Prod (VPS / Mikrus)
 
-```bash
-git clone git@github.com:Maciekek/secret-santa.git && cd secret-santa
-cp .env.example .env    # ustaw ADMIN_PASSWORD, APP_SECRET (openssl rand -base64 48), DOMAIN
-make prod               # docker compose up -d --build
-```
+GitHub Actions (`.github/workflows/docker.yml`) przy każdym pushu na `main` puszcza testy
+i buduje obraz `ghcr.io/maciekek/secret-santa` (amd64 + arm64). Serwer tylko go pobiera —
+instrukcja w [`deploy/README.md`](deploy/README.md).
 
-- Kontener nie wystawia portu. Podpina się do sieci `web` wspólnego stacku vps-proxy
-  (caddy-docker-proxy), który po labelach robi routing i HTTPS dla `DOMAIN`.
-- **Subdomena Mikrusa** (np. `losowanie.toadres.pl`): w panelu Mikrusa port `80`, checkbox
-  „HTTPS” odznaczony; w `.env` `CADDY_SITE=http://<domena>`. HTTPS robi Mikrus, Caddy
-  przyjmuje zwykłe HTTP (bez tego wpada w pętlę przekierowań http→https).
-- **Własna domena**: rekord `AAAA`/`A` na VPS, bez `CADDY_SITE` — Caddy sam wystawi certyfikat.
-- Baza leży w wolumenie `gwiazdka-data` (`/data/gwiazdka.db`). Kopia: `make backup`.
+- Lokalny podgląd obrazu prod: `make preview` → http://localhost:3000
 - **Nie zmieniaj `APP_SECRET`** po utworzeniu losowań — stare pary przestaną się odszyfrowywać.
 
 ## API
