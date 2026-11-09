@@ -14,11 +14,12 @@ services:
     networks:
       - web
     labels:
-      caddy: ${DOMAIN}
+      # Własna domena → Caddy sam robi HTTPS: zostaw CADDY_SITE puste.
+      # Subdomena Mikrusa (np. *.toadres.pl) → HTTPS robi Mikrus, Caddy ma słuchać po HTTP:
+      #   CADDY_SITE=http://<domena>  (w panelu Mikrusa port 80, bez zaznaczania „HTTPS”)
+      caddy: ${CADDY_SITE:-${DOMAIN}}
       caddy.import: secure
       caddy.reverse_proxy: "{{upstreams 3000}}"
-      caddy_1: www.${DOMAIN}
-      caddy_1.redir: https://${DOMAIN}{uri} permanent
     volumes:
       - gwiazdka-data:/data
     mem_limit: 192m

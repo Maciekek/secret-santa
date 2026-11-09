@@ -42,7 +42,10 @@ make prod               # docker compose up -d --build
 
 - Kontener nie wystawia portu. Podpina się do sieci `web` wspólnego stacku vps-proxy
   (caddy-docker-proxy), który po labelach robi routing i HTTPS dla `DOMAIN`.
-- Rekord DNS `A`/`AAAA` dla `DOMAIN` (i `www.`) musi wskazywać na VPS.
+- **Subdomena Mikrusa** (np. `losowanie.toadres.pl`): w panelu Mikrusa port `80`, checkbox
+  „HTTPS” odznaczony; w `.env` `CADDY_SITE=http://<domena>`. HTTPS robi Mikrus, Caddy
+  przyjmuje zwykłe HTTP (bez tego wpada w pętlę przekierowań http→https).
+- **Własna domena**: rekord `AAAA`/`A` na VPS, bez `CADDY_SITE` — Caddy sam wystawi certyfikat.
 - Baza leży w wolumenie `gwiazdka-data` (`/data/gwiazdka.db`). Kopia: `make backup`.
 - **Nie zmieniaj `APP_SECRET`** po utworzeniu losowań — stare pary przestaną się odszyfrowywać.
 
