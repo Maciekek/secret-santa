@@ -48,7 +48,6 @@ body {
   .snow { display: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
 }
-.no-snow .snow { display: none; }
 
 /* ---------- fokus (klawiatura) ---------- */
 :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
@@ -67,18 +66,7 @@ body {
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
 .wrap { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 0 16px 2rem; }
-.foot { text-align: center; color: #fff; padding: 1.5rem; display: grid; gap: 0.75rem; justify-items: center; }
-.snow-toggle {
-  font: inherit;
-  font-size: 0.95rem;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  border-radius: 999px;
-  padding: 0.5rem 1rem;
-  min-height: 44px;
-  cursor: pointer;
-}
+.foot { text-align: center; color: #fff; padding: 1.5rem; }
 
 .card {
   position: relative;

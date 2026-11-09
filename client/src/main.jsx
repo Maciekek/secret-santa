@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
-import Snow, { SnowToggle } from './Snow.jsx';
+import Snow from './Snow.jsx';
 import Home from './pages/Home.jsx';
 import Draw from './pages/Draw.jsx';
 import Organizer from './pages/Organizer.jsx';
@@ -34,10 +34,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <footer className="foot">
-        <span>Wesołych Świąt! ✨</span>
-        <SnowToggle />
-      </footer>
+      <footer className="foot">Wesołych Świąt! ✨</footer>
     </BrowserRouter>
   </StrictMode>,
 );

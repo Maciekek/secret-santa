@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 const FLAKES = ['❄', '❅', '❆', '•'];
 
@@ -37,29 +37,3 @@ export default function Snow({ count = 40 }) {
   );
 }
 
-const KEY = 'gwiazdka:bez-sniegu';
-const readOff = () => {
-  try {
-    return localStorage.getItem(KEY) === '1';
-  } catch {
-    return false;
-  }
-};
-
-/** WCAG 2.2.2: ruchomą dekorację musi dać się zatrzymać. */
-export function SnowToggle() {
-  const [off, setOff] = useState(readOff);
-  useEffect(() => {
-    document.documentElement.classList.toggle('no-snow', off);
-    try {
-      localStorage.setItem(KEY, off ? '1' : '0');
-    } catch {
-      /* ignore */
-    }
-  }, [off]);
-  return (
-    <button type="button" className="snow-toggle" aria-pressed={!off} onClick={() => setOff((v) => !v)}>
-      {off ? '❄ Włącz padający śnieg' : '❄ Wyłącz padający śnieg'}
-    </button>
-  );
-}
