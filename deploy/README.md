@@ -1,9 +1,9 @@
 # Wdrożenie na VPS
 
 Serwer uruchamia gotowy obraz z GHCR (`ghcr.io/maciekek/secret-santa`), który buduje GitHub
-Actions przy każdym pushu na `main`. Na serwerze nic się nie buduje. TLS i routing robi wspólny
-stack [vps-proxy](https://github.com/Maciekek/vps-proxy) — ten compose tylko deklaruje domenę
-labelami i dołącza do sieci `web`.
+Actions przy każdym pushu na `main`. Na serwerze nic się nie buduje. Kontener wystawia port
+`HOST_PORT` (domyślnie `3005`, IPv4 + IPv6), a subdomena Mikrusa wskazuje prosto na niego —
+HTTPS robi Mikrus.
 
 ## Pierwsze wdrożenie
 
@@ -14,7 +14,7 @@ curl -fsSLO https://raw.githubusercontent.com/Maciekek/secret-santa/main/deploy/
 curl -fsSLO https://raw.githubusercontent.com/Maciekek/secret-santa/main/deploy/backup.sh
 curl -fsSL  https://raw.githubusercontent.com/Maciekek/secret-santa/main/deploy/.env.example -o .env
 chmod +x update.sh backup.sh
-nano .env          # DOMAIN, CADDY_SITE, ADMIN_PASSWORD, APP_SECRET
+nano .env          # DOMAIN, HOST_PORT, ADMIN_PASSWORD, APP_SECRET
 
 docker compose up -d
 docker compose logs -f
@@ -24,11 +24,10 @@ Repo prywatne → obraz w GHCR też jest prywatny. Wtedy raz na serwerze:
 `echo <PAT z read:packages> | docker login ghcr.io -u Maciekek --password-stdin`
 (albo ustaw paczkę jako publiczną w GitHub → Packages → secret-santa → Settings).
 
-### Domena
+### Subdomena Mikrusa
 
-- **Subdomena Mikrusa** (np. `prezenty.toadres.pl`): w panelu Mikrusa port `80`, checkbox
-  „HTTPS” odznaczony; w `.env` `CADDY_SITE=http://<domena>`. HTTPS robi Mikrus.
-- **Własna domena**: rekord `AAAA`/`A` na VPS, bez `CADDY_SITE` — Caddy sam wystawi certyfikat.
+W panelu Mikrusa: subdomena → port `HOST_PORT` (np. `3005`), checkbox „HTTPS” odznaczony.
+Sprawdzenie na serwerze: `curl -s http://localhost:3005/api/health` → `{"ok":true}`.
 
 ## Aktualizacja
 

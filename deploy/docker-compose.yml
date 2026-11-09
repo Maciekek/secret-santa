@@ -1,6 +1,6 @@
 # Produkcja: gotowy obraz z GHCR (budowany przez GitHub Actions). Na serwerze nic się nie buduje.
-# TLS i routing robi wspólny stack vps-proxy (Caddy czyta labele poniżej) — bez wystawiania portu.
-# Zobacz deploy/README.md.
+# Aplikacja wystawia port na hosta (IPv4 + IPv6), a subdomena Mikrusa wskazuje prosto na niego.
+# HTTPS robi Mikrus. Zobacz deploy/README.md.
 name: secret-santa
 
 services:
@@ -11,15 +11,8 @@ services:
     env_file: .env
     environment:
       PUBLIC_URL: https://${DOMAIN}
-    networks:
-      - web
-    labels:
-      # Własna domena → Caddy sam robi HTTPS: zostaw CADDY_SITE puste.
-      # Subdomena Mikrusa (np. *.toadres.pl) → HTTPS robi Mikrus, Caddy ma słuchać po HTTP:
-      #   CADDY_SITE=http://<domena>  (w panelu Mikrusa port 80, bez zaznaczania „HTTPS”)
-      caddy: ${CADDY_SITE:-${DOMAIN}}
-      caddy.import: secure
-      caddy.reverse_proxy: "{{upstreams 3000}}"
+    ports:
+      - "${HOST_PORT:-3005}:3000"
     volumes:
       - gwiazdka-data:/data
     mem_limit: 192m
@@ -31,8 +24,3 @@ services:
 
 volumes:
   gwiazdka-data:
-
-# Tworzona przez stack vps-proxy
-networks:
-  web:
-    external: true
