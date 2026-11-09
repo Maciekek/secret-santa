@@ -47,6 +47,11 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
 - `GET /api/draws/:slug` → nazwa + uczestnicy ze statusem `drawn`
 - `POST /api/draws/:slug/draw` `{ participantId }` → `{ name, target }` (409 gdy już losował)
 - `GET /api/draws/:slug/manage`, `POST /api/draws/:slug/manage/reshuffle` — nagłówek `X-Organizer-Key`
+  (albo `Authorization: Bearer <token admina>`)
+- `POST /api/draws/:slug/manage/participants` `{ name }`, `PATCH …/participants/:id` `{ name }`,
+  `DELETE …/participants/:id` → `{ participants, reset }` — edycja listy. Zmiana imienia nie rusza par.
+  Przy dodaniu/usunięciu kto już losował zachowuje parę; pary pozostałych losowane od nowa. `reset` = kto
+  już losował, a musi ponownie (jego osoba wypadła z listy).
 - `POST /api/admin/login` `{ password }` → `{ token }`
 - `GET /api/admin/draws`, `GET /api/admin/draws/:slug`,
   `POST /api/admin/draws/:slug/participants/:id/reveal`, `POST /api/admin/draws/:slug/reshuffle`,

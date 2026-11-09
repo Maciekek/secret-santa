@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { api } from '../api.js';
+import { api, asOrganizer } from '../api.js';
 import { links, myDraws } from '../storage.js';
 import CopyField from '../CopyField.jsx';
 import { useTitle } from '../useTitle.js';
@@ -49,7 +49,10 @@ export default function Organizer() {
       <h1 className="festive">{data.name}</h1>
       <p className="muted">Panel organizatora — widzisz kto losował, ale nie kogo wylosował. 🤫</p>
       <CopyField label="🔗 Link do losowania" value={links.draw(slug)} />
-      <StatusList participants={data.participants} />
+      <StatusList
+        participants={data.participants}
+        edit={{ slug, auth: asOrganizer(key), onUpdated: (participants) => setData((d) => ({ ...d, participants })) }}
+      />
       <div className="actions">
         <button className="btn ghost small" onClick={load}>Odśwież</button>
         <button className="btn danger small" onClick={reshuffle}>Losuj pary od nowa</button>

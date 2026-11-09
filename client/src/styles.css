@@ -277,6 +277,19 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
   background: #f6eee8;
 }
 .status li.done { background: #e6f3ea; }
+.row-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.rename { display: flex; gap: 0.5rem; flex-wrap: wrap; width: 100%; align-items: center; }
+.rename input { flex: 1 1 12rem; min-width: 0; }
+.notice {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: #fff4d6;
+  border: 2px solid #b8860b;
+  color: var(--ink);
+  font-weight: 700;
+}
+.add-person .field { margin-bottom: 0.5rem; }
 .who { font-weight: 800; flex: 1; min-width: 8rem; }
 .when { color: var(--muted); font-size: 0.95rem; }
 

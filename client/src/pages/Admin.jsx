@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api } from '../api.js';
+import { api, asAdmin } from '../api.js';
 import { adminToken, links } from '../storage.js';
 import CopyField from '../CopyField.jsx';
 import { useTitle } from '../useTitle.js';
@@ -115,6 +115,7 @@ function DrawDetails({ token, slug, guard, onBack }) {
       <StatusList
         participants={data.participants}
         renderExtra={(p) => <PeekButton token={token} slug={slug} participant={p} guard={guard} />}
+        edit={{ slug, auth: asAdmin(token), onUpdated: (participants) => setData((d) => ({ ...d, participants })) }}
       />
       <p className="hint">Pary są zaszyfrowane w bazie. Żeby podejrzeć, kogo ktoś ma, przytrzymaj 🔒 — po puszczeniu znika.</p>
       <div className="actions">

@@ -1,7 +1,8 @@
 import express from 'express';
 import path from 'node:path';
 import fs from 'node:fs';
-import { derangement } from './derangement.js';
+import { randomInt } from 'node:crypto';
+import { randomMatching } from './derangement.js';
 import { transaction } from './db.js';
 import { randomToken, safeEqual } from './crypto.js';
 import { metaFor, renderHtml, robotsTxt, sitemapXml } from './seo.js';
@@ -38,6 +39,8 @@ export function createApp({ db, crypto, config }) {
     ),
     insertDraw: db.prepare('INSERT INTO draws (slug, name, organizer_key) VALUES (?, ?, ?)'),
     insertParticipant: db.prepare('INSERT INTO participants (draw_slug, name) VALUES (?, ?)'),
+    renameParticipant: db.prepare('UPDATE participants SET name = ? WHERE draw_slug = ? AND id = ?'),
+    deleteParticipant: db.prepare('DELETE FROM participants WHERE draw_slug = ? AND id = ?'),
     setTarget: db.prepare('UPDATE participants SET target_enc = ?, drawn_at = NULL WHERE id = ?'),
     markDrawn: db.prepare(
       "UPDATE participants SET drawn_at = datetime('now') WHERE id = ? AND drawn_at IS NULL",
@@ -56,11 +59,52 @@ export function createApp({ db, crypto, config }) {
     return draw;
   }
 
-  /** Przydziela pary od nowa (derangement) i czyści status losowania. */
-  function shuffle(slug) {
+  /**
+   * Przydziela pary (nikt nie ma siebie, każdy daje i dostaje dokładnie raz).
+   * - `resetAll`: wszystko od nowa, wszyscy losują ponownie.
+   * - inaczej (po zmianie listy): kto już losował i ma nadal poprawną parę — zachowuje ją;
+   *   pary pozostałych losujemy od nowa (nikt ich jeszcze nie widział). Jeśli się nie da
+   *   (np. jedyna wolna osoba trafiłaby na siebie), cofamy losowanie losowo wybranej osobie.
+   * Zwraca imiona osób, które już losowały, a muszą losować ponownie.
+   */
+  function assign(slug, { resetAll = false } = {}) {
     const people = q.participants.all(slug);
-    const targets = derangement(people.length);
-    people.forEach((p, i) => q.setTarget.run(crypto.encrypt(people[targets[i]].id), p.id));
+    const ids = people.map((p) => p.id);
+    const exists = new Set(ids);
+    const targetOf = new Map(people.map((p) => [p.id, p.target_enc ? Number(crypto.decrypt(p.target_enc)) : null]));
+    const drawn = people.filter((p) => p.drawn_at);
+
+    const locked = new Set();
+    if (!resetAll) {
+      for (const p of drawn) {
+        const t = targetOf.get(p.id);
+        if (exists.has(t) && t !== p.id && ![...locked].some((l) => targetOf.get(l) === t)) locked.add(p.id);
+      }
+    }
+
+    for (;;) {
+      const givers = ids.filter((id) => !locked.has(id));
+      const taken = new Set([...locked].map((id) => targetOf.get(id)));
+      const targets = ids.filter((id) => !taken.has(id));
+      const match = randomMatching(givers, targets);
+      if (match) {
+        givers.forEach((g, i) => q.setTarget.run(crypto.encrypt(match[i]), g)); // czyści też drawn_at
+        break;
+      }
+      const pool = [...locked];
+      locked.delete(pool[randomInt(pool.length)]);
+    }
+    return drawn.filter((p) => !locked.has(p.id)).map((p) => p.name);
+  }
+  const shuffle = (slug) => assign(slug, { resetAll: true });
+
+  /** Imię niepuste i unikalne w losowaniu (bez względu na wielkość liter, także ą/Ą). */
+  function validateName(slug, name, exceptId = null) {
+    if (!name) throw new HttpError(400, 'Podaj imię');
+    const lower = name.toLocaleLowerCase('pl');
+    if (q.participants.all(slug).some((p) => p.id !== exceptId && p.name.toLocaleLowerCase('pl') === lower)) {
+      throw new HttpError(400, `${name} już jest na liście (dodaj np. inicjał nazwiska)`);
+    }
   }
 
   const statusView = (slug) =>
@@ -74,10 +118,13 @@ export function createApp({ db, crypto, config }) {
     next();
   }
 
+  /** Organizator (klucz z linku) albo admin (token). */
   function requireOrganizer(req, _res, next) {
     const draw = getDraw(req.params.slug);
     const key = req.get('x-organizer-key') || '';
-    if (!key || !safeEqual(crypto.hash(key), draw.organizer_key)) {
+    const token = (req.get('authorization') || '').replace(/^Bearer /, '');
+    const isOrganizer = key && safeEqual(crypto.hash(key), draw.organizer_key);
+    if (!isOrganizer && !crypto.verifyAdminToken(token)) {
       return next(new HttpError(403, 'Nieprawidłowy link organizatora'));
     }
     req.draw = draw;
@@ -143,7 +190,7 @@ export function createApp({ db, crypto, config }) {
         throw new HttpError(409, `${me.name} już losował(a). Jeśli to Ty — wynik jest w przeglądarce, na której losowałeś(-aś).`);
       }
       const target = q.participant.get(draw.slug, Number(crypto.decrypt(me.target_enc)));
-      return { name: me.name, target: target.name };
+      return { id: me.id, name: me.name, target: target.name, targetId: target.id };
     });
     res.json(result);
   });
@@ -157,6 +204,45 @@ export function createApp({ db, crypto, config }) {
   app.post('/api/draws/:slug/manage/reshuffle', requireOrganizer, (req, res) => {
     transaction(db, () => shuffle(req.draw.slug));
     res.json({ participants: statusView(req.draw.slug) });
+  });
+
+  // Edycja listy. Odpowiedź: aktualna lista + `reset` — kto już losował, a musi losować ponownie.
+  const PARTICIPANTS = '/api/draws/:slug/manage/participants';
+
+  app.post(PARTICIPANTS, requireOrganizer, (req, res) => {
+    const { slug } = req.draw;
+    const name = cleanName(req.body?.name);
+    validateName(slug, name);
+    if (q.participants.all(slug).length >= MAX_PEOPLE) throw new HttpError(400, `Maksymalnie ${MAX_PEOPLE} osób`);
+    const reset = transaction(db, () => {
+      q.insertParticipant.run(slug, name);
+      return assign(slug);
+    });
+    res.status(201).json({ participants: statusView(slug), reset });
+  });
+
+  app.patch(`${PARTICIPANTS}/:id`, requireOrganizer, (req, res) => {
+    const { slug } = req.draw;
+    const id = Number(req.params.id);
+    if (!q.participant.get(slug, id)) throw new HttpError(404, 'Nie ma takiej osoby');
+    const name = cleanName(req.body?.name);
+    validateName(slug, name, id);
+    q.renameParticipant.run(name, slug, id); // pary trzymamy po id — zmiana imienia ich nie rusza
+    res.json({ participants: statusView(slug), reset: [] });
+  });
+
+  app.delete(`${PARTICIPANTS}/:id`, requireOrganizer, (req, res) => {
+    const { slug } = req.draw;
+    const id = Number(req.params.id);
+    if (!q.participant.get(slug, id)) throw new HttpError(404, 'Nie ma takiej osoby');
+    if (q.participants.all(slug).length <= MIN_PEOPLE) {
+      throw new HttpError(400, `Losowanie musi mieć co najmniej ${MIN_PEOPLE} osoby`);
+    }
+    const reset = transaction(db, () => {
+      q.deleteParticipant.run(slug, id);
+      return assign(slug);
+    });
+    res.json({ participants: statusView(slug), reset });
   });
 
   // ---------- admin ----------

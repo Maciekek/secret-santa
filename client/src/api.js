@@ -17,6 +17,10 @@ async function request(method, path, { body, headers } = {}) {
 const org = (key) => ({ headers: { 'x-organizer-key': key } });
 const admin = (token) => ({ headers: { authorization: `Bearer ${token}` } });
 
+/** Nagłówki autoryzacji do edycji listy: organizator (klucz) albo admin (token). */
+export const asOrganizer = (key) => org(key).headers;
+export const asAdmin = (token) => admin(token).headers;
+
 export const api = {
   createDraw: (name, participants) => request('POST', '/draws', { body: { name, participants } }),
   getDraw: (slug) => request('GET', `/draws/${slug}`),
@@ -24,6 +28,13 @@ export const api = {
 
   manage: (slug, key) => request('GET', `/draws/${slug}/manage`, org(key)),
   organizerReshuffle: (slug, key) => request('POST', `/draws/${slug}/manage/reshuffle`, org(key)),
+
+  addParticipant: (slug, auth, name) =>
+    request('POST', `/draws/${slug}/manage/participants`, { headers: auth, body: { name } }),
+  renameParticipant: (slug, auth, id, name) =>
+    request('PATCH', `/draws/${slug}/manage/participants/${id}`, { headers: auth, body: { name } }),
+  removeParticipant: (slug, auth, id) =>
+    request('DELETE', `/draws/${slug}/manage/participants/${id}`, { headers: auth }),
 
   login: (password) => request('POST', '/admin/login', { body: { password } }),
   adminDraws: (t) => request('GET', '/admin/draws', admin(t)),

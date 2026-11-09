@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { myResults } from '../storage.js';
+import { myResults, sameParticipant } from '../storage.js';
 import { useTitle } from '../useTitle.js';
 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -11,7 +11,7 @@ export default function Draw() {
   const { slug } = useParams();
   const [draw, setDraw] = useState(null);
   const [results, setResults] = useState(() => myResults.all(slug));
-  const [viewing, setViewing] = useState(null); // imię, którego wynik jest pokazany
+  const [viewing, setViewing] = useState(null); // id osoby, której wynik jest pokazany
   const [meId, setMeId] = useState('');
   const [error, setError] = useState('');
   const [rolling, setRolling] = useState(null);
@@ -25,11 +25,12 @@ export default function Draw() {
         setDraw(d);
         // Organizator rozlosował od nowa → wyniki z localStorage tych osób są nieaktualne.
         const saved = myResults.all(slug);
-        const valid = saved.filter((r) => d.participants.some((p) => p.name === r.name && p.drawn));
+        const valid = saved.filter((r) => d.participants.some((p) => sameParticipant(r, p) && p.drawn));
         if (valid.length !== saved.length) {
+          const lost = saved.filter((r) => !valid.includes(r)).map((r) => r.name);
           myResults.set(slug, valid);
           setResults(valid);
-          setError('Losowanie zostało powtórzone przez organizatora — trzeba wylosować jeszcze raz.');
+          setError(`Organizator zmienił losowanie — ${lost.join(', ')}: trzeba wylosować jeszcze raz.`);
         }
       })
       .catch((err) => setError(err.message));
@@ -55,10 +56,10 @@ export default function Draw() {
 
     try {
       const [res] = await Promise.all([api.draw(slug, me.id), new Promise((r) => setTimeout(r, rollMs))]);
-      const entry = { name: res.name, target: res.target, drawnAt: new Date().toISOString() };
+      const entry = { id: res.id, name: res.name, target: res.target, targetId: res.targetId, drawnAt: new Date().toISOString() };
       myResults.add(slug, entry);
       setResults(myResults.all(slug));
-      setViewing(res.name);
+      setViewing(res.id);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -97,8 +98,20 @@ export default function Draw() {
     );
   }
 
-  const shown = results.find((r) => r.name === viewing);
-  if (shown) return <Result result={shown} drawName={draw.name} onNext={backToList} anyoneLeft={draw.participants.some((p) => !p.drawn)} />;
+  const viewed = draw.participants.find((p) => p.id === viewing);
+  const shown = viewed && results.find((r) => sameParticipant(r, viewed));
+  if (shown) {
+    // aktualne imiona (organizator mógł poprawić literówkę)
+    const targetNow = draw.participants.find((p) => p.id === shown.targetId)?.name ?? shown.target;
+    return (
+      <Result
+        result={{ ...shown, name: viewed.name, target: targetNow }}
+        drawName={draw.name}
+        onNext={backToList}
+        anyoneLeft={draw.participants.some((p) => !p.drawn)}
+      />
+    );
+  }
 
   const me = draw.participants.find((p) => String(p.id) === meId);
 
@@ -120,7 +133,6 @@ export default function Draw() {
 
   // Krok 1: kim jesteś?
   const free = draw.participants.filter((p) => !p.drawn);
-  const mine = new Set(results.map((r) => r.name));
 
   return (
     <div className="card">
@@ -138,7 +150,7 @@ export default function Draw() {
 
       <ul className="players">
         {draw.participants.map((p) => {
-          const isMine = mine.has(p.name);
+          const isMine = results.some((r) => sameParticipant(r, p));
           const disabled = p.drawn && !isMine;
           return (
             <li key={p.id}>
@@ -151,7 +163,7 @@ export default function Draw() {
                 }
                 onClick={() => {
                   setError('');
-                  if (isMine) setViewing(p.name);
+                  if (isMine) setViewing(p.id);
                   else setMeId(String(p.id));
                 }}
               >

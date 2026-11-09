@@ -18,15 +18,19 @@ function write(key, value) {
 }
 
 /**
- * Wyniki losowań z tej przeglądarki: [{ name, target, drawnAt }].
+ * Wyniki losowań z tej przeglądarki: [{ id, name, target, targetId, drawnAt }].
  * Lista, bo z jednego komputera może losować kilka osób (np. dziadkowie).
+ * Dopasowanie po id (imię organizator może poprawić); starsze wpisy bez id — po imieniu.
  */
+export const sameParticipant = (result, p) => (result.id != null ? result.id === p.id : result.name === p.name);
+
 export const myResults = {
   all(slug) {
     const value = read(`gwiazdka:wynik:${slug}`, []);
     return Array.isArray(value) ? value : value ? [value] : []; // stary format: jeden obiekt
   },
-  add: (slug, entry) => write(`gwiazdka:wynik:${slug}`, [...myResults.all(slug).filter((r) => r.name !== entry.name), entry]),
+  add: (slug, entry) =>
+    write(`gwiazdka:wynik:${slug}`, [...myResults.all(slug).filter((r) => !sameParticipant(r, entry)), entry]),
   set: (slug, list) => write(`gwiazdka:wynik:${slug}`, list),
 };
 
