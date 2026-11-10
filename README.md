@@ -68,7 +68,13 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
 
 ## Muzyka
 
-Przycisk „Włącz kolędy” w nagłówku (domyślnie wyłączone). Nagrania w `client/public/music/` to
-*Jingle Bells*, *We Wish You a Merry Christmas* i *Joy to the World* w wykonaniu
-United States Air Force Band of Mid-America („Starlifter and Roots in Blue”, 2020). Jako dzieło rządu USA
-są w domenie publicznej. Źródło: Wikimedia Commons. Przekodowane do 96 kb/s.
+Przycisk „Włącz kolędy” w nagłówku (domyślnie wyłączone, pliki ładują się dopiero po kliknięciu).
+Nagrania w `client/public/music/` pochodzą z Wikimedia Commons. To dzieła zespołów US Air Force, więc jako
+utwory rządu USA są w domenie publicznej. Melodie to tradycyjne kolędy, też w domenie publicznej.
+Pliki przekodowane do 96 kb/s.
+
+- *Good King Wenceslas and His Merry Band* — Airmen of Note (płyta „Christmas Time is Here”, 1998)
+- *Jingle Bells* — Starlifter and Roots in Blue, USAF Band of Mid-America (2020)
+- *Oh Christmas Tree* — Raptor, USAF Heartland of America Band (płyta „Christmas from the Heartland”, 1994)
+- *Deck the Halls* — USAF Band, Concert Band
+- *Joy to the World* (jazz) — Diplomats, USAF Band (płyta „Do You Hear What I Hear?”, 2002)

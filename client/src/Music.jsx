@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 
 /*
- * Kolędy w tle. Nagrania: United States Air Force Band of Mid-America („Starlifter and Roots in Blue”, 2020),
- * utwory rządu USA = domena publiczna (źródło: Wikimedia Commons). Pliki w client/public/music.
+ * Kolędy w tle — nagrania zespołów US Air Force Band (dzieła rządu USA = domena publiczna,
+ * źródło: Wikimedia Commons, szczegóły w README). Pliki w client/public/music.
  * Domyślnie wyłączone: przeglądarki blokują autoplay, a WCAG 1.4.2 wymaga możliwości wyłączenia dźwięku.
  */
-const TRACKS = ['/music/jingle-bells.mp3', '/music/we-wish-you.mp3', '/music/joy-to-the-world.mp3'];
+const TRACKS = [
+  '/music/good-king-wenceslas.mp3',
+  '/music/jingle-bells.mp3',
+  '/music/o-christmas-tree.mp3',
+  '/music/deck-the-halls.mp3',
+  '/music/joy-to-the-world.mp3',
+];
 const VOLUME = 0.5;
 
 export default function Music() {
