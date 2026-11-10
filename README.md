@@ -65,3 +65,10 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
 - `/` — indeksowane; `/d/*`, `/admin` — `noindex` (meta + nagłówek `X-Robots-Tag`).
 - `robots.txt` i `sitemap.xml` generuje serwer z `PUBLIC_URL`.
 - Obrazek OG: `client/public/og.png` (1200×630), ikona: `client/public/icon-512.png`.
+
+## Muzyka
+
+Przycisk „Włącz kolędy” w nagłówku (domyślnie wyłączone). Nagrania w `client/public/music/` to
+*Jingle Bells*, *We Wish You a Merry Christmas* i *Joy to the World* w wykonaniu
+United States Air Force Band of Mid-America („Starlifter and Roots in Blue”, 2020). Jako dzieło rządu USA
+są w domenie publicznej. Źródło: Wikimedia Commons. Przekodowane do 96 kb/s.
