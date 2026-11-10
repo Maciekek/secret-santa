@@ -68,7 +68,8 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
 
 ## Muzyka
 
-Przycisk „Włącz kolędy” w nagłówku (domyślnie wyłączone, pliki ładują się dopiero po kliknięciu).
+Muzyka startuje sama: od razu, jeśli przeglądarka pozwala, a jeśli blokuje autoplay, to przy pierwszym
+kliknięciu na stronie. Przycisk w nagłówku ją wyłącza, a wybór „wyłączone” jest zapamiętany w localStorage.
 Nagrania w `client/public/music/` pochodzą z Wikimedia Commons. To dzieła zespołów US Air Force, więc jako
 utwory rządu USA są w domenie publicznej. Melodie to tradycyjne kolędy, też w domenie publicznej.
 Pliki przekodowane do 96 kb/s.

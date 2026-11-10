@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 /*
  * Kolędy w tle — nagrania zespołów US Air Force Band (dzieła rządu USA = domena publiczna,
  * źródło: Wikimedia Commons, szczegóły w README). Pliki w client/public/music.
- * Domyślnie wyłączone: przeglądarki blokują autoplay, a WCAG 1.4.2 wymaga możliwości wyłączenia dźwięku.
+ * Startuje sama: od razu, jeśli przeglądarka pozwoli, a jeśli nie (blokada autoplay) — przy pierwszym
+ * kliknięciu / klawiszu na stronie. Kto wyłączy, temu już sama nie włączy (localStorage).
+ * Przycisk zawsze widoczny (WCAG 1.4.2).
  */
 const TRACKS = [
   '/music/good-king-wenceslas.mp3',
@@ -13,6 +15,12 @@ const TRACKS = [
   '/music/joy-to-the-world.mp3',
 ];
 const VOLUME = 0.5;
+const PREF = 'gwiazdka:muzyka';
+
+const pref = {
+  get: () => { try { return localStorage.getItem(PREF); } catch { return null; } },
+  set: (v) => { try { localStorage.setItem(PREF, v); } catch { /* ignore */ } },
+};
 
 export default function Music() {
   const [on, setOn] = useState(false);
@@ -37,18 +45,44 @@ export default function Music() {
     const a = audio.current;
     if (!a.src) a.src = TRACKS[track.current];
     a.volume = 0;
-    a.play().then(() => fadeTo(VOLUME)).catch(() => setOn(false));
+    const p = a.play();
+    p.then(() => fadeTo(VOLUME)).catch(() => setOn(false));
+    return p;
   }
 
   function toggle() {
     if (on) {
       fadeTo(0, () => audio.current.pause());
       setOn(false);
+      pref.set('off');
     } else {
       play();
       setOn(true);
+      pref.set('on');
     }
   }
+
+  // autostart: od razu albo przy pierwszej interakcji
+  useEffect(() => {
+    if (pref.get() === 'off') return;
+    let alive = true;
+    const events = ['pointerdown', 'keydown'];
+    const stopWaiting = () => events.forEach((e) => document.removeEventListener(e, onFirst, true));
+    function onFirst(e) {
+      stopWaiting();
+      if (e.target.closest?.('.music')) return; // klik w sam przycisk obsłuży toggle
+      setOn(true);
+      play();
+    }
+    setOn(true);
+    play().catch(() => {
+      if (alive) events.forEach((e) => document.addEventListener(e, onFirst, true));
+    });
+    return () => {
+      alive = false;
+      stopWaiting();
+    };
+  }, []);
 
   function next() {
     track.current = (track.current + 1) % TRACKS.length;
