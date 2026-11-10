@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import Snow from './Snow.jsx';
+import Music from './Music.jsx';
 import Home from './pages/Home.jsx';
 import Draw from './pages/Draw.jsx';
 import Organizer from './pages/Organizer.jsx';
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')).render(
       <Snow />
       <header className="top">
         <Link to="/" className="logo">🎄 Gwiazdka</Link>
+        <Music />
       </header>
       <main className="wrap">
         <Routes>
