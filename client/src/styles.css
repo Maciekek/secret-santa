@@ -295,7 +295,7 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
   color: var(--ink);
   font-weight: 700;
 }
-.notice a { color: var(--green-dark); }
+.notice p { margin: 0 0 0.6rem; }
 .add-person .field { margin-bottom: 0.5rem; }
 .who { font-weight: 800; flex: 1; min-width: 8rem; }
 .when { color: var(--muted); font-size: 0.95rem; }

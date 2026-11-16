@@ -282,10 +282,10 @@ export default function List({ asOrganizer = false }) {
           <>
             <p>Zobacz, co już ktoś przynosi, i dopisz siebie. Dzięki temu nie będzie trzech makowców i zero barszczu. 🙂</p>
             {savedOrgKey && (
-              <p className="notice">
-                🗝️ Ta lista została założona w tej przeglądarce.{' '}
-                <Link to={`/l/${slug}/organizator#${savedOrgKey}`}>Otwórz panel organizatora</Link>
-              </p>
+              <div className="notice">
+                <p>🗝️ Ta lista została założona w tej przeglądarce.</p>
+                <Link className="btn small" to={`/l/${slug}/organizator#${savedOrgKey}`}>Otwórz panel organizatora</Link>
+              </div>
             )}
           </>
         )}
