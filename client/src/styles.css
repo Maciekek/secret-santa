@@ -389,7 +389,7 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
   border-radius: var(--radius);
   padding: 1rem 1.1rem 1.1rem;
   font-size: 0.95rem;
-  margin: 2.5rem 0.5rem 0;
+  margin: 3.5rem 0.5rem 0; /* = odstęp od karteczki do napisu w stopce */
   backdrop-filter: blur(4px);
 }
 .psst p { margin: 0 0 0.75rem; line-height: 1.45; }
