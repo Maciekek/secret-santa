@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { myResults, sameParticipant } from '../storage.js';
+import { myDraws, myResults, sameParticipant } from '../storage.js';
+import Psst from '../Psst.jsx';
 import { useTitle } from '../useTitle.js';
 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -98,18 +99,24 @@ export default function Draw() {
     );
   }
 
+  // „Psst…” dla gości — nie dla kogoś, kto sam założył to losowanie w tej przeglądarce.
+  const psst = myDraws.all().some((d) => d.slug === slug) ? null : <Psst />;
+
   const viewed = draw.participants.find((p) => p.id === viewing);
   const shown = viewed && results.find((r) => sameParticipant(r, viewed));
   if (shown) {
     // aktualne imiona (organizator mógł poprawić literówkę)
     const targetNow = draw.participants.find((p) => p.id === shown.targetId)?.name ?? shown.target;
     return (
-      <Result
-        result={{ ...shown, name: viewed.name, target: targetNow }}
-        drawName={draw.name}
-        onNext={backToList}
-        anyoneLeft={draw.participants.some((p) => !p.drawn)}
-      />
+      <>
+        <Result
+          result={{ ...shown, name: viewed.name, target: targetNow }}
+          drawName={draw.name}
+          onNext={backToList}
+          anyoneLeft={draw.participants.some((p) => !p.drawn)}
+        />
+        {psst}
+      </>
     );
   }
 
@@ -135,56 +142,59 @@ export default function Draw() {
   const free = draw.participants.filter((p) => !p.drawn);
 
   return (
-    <div className="card">
-      <h1 className="festive">{draw.name}</h1>
+    <>
+      <div className="card">
+        <h1 className="festive">{draw.name}</h1>
 
-      {free.length === 0 ? (
-        <p className="ok">Wszyscy już wylosowali. Wesołych Świąt! 🎉</p>
-      ) : (
-        <>
-          <FocusHeading className="question">Kim jesteś? 🎅</FocusHeading>
-          <p className="lead">Kliknij swoje imię.</p>
-        </>
-      )}
-      {error && <p className="error" role="alert">{error}</p>}
+        {free.length === 0 ? (
+          <p className="ok">Wszyscy już wylosowali. Wesołych Świąt! 🎉</p>
+        ) : (
+          <>
+            <FocusHeading className="question">Kim jesteś? 🎅</FocusHeading>
+            <p className="lead">Kliknij swoje imię.</p>
+          </>
+        )}
+        {error && <p className="error" role="alert">{error}</p>}
 
-      <ul className="players">
-        {draw.participants.map((p) => {
-          const isMine = results.some((r) => sameParticipant(r, p));
-          const disabled = p.drawn && !isMine;
-          return (
-            <li key={p.id}>
-              <button
-                type="button"
-                className={`player ${isMine ? 'mine' : ''}`}
-                disabled={disabled}
-                aria-label={
-                  isMine ? `${p.name} — pokaż mój wynik` : p.drawn ? `${p.name} — już losował(a)` : `${p.name} — losuj`
-                }
-                onClick={() => {
-                  setError('');
-                  if (isMine) setViewing(p.id);
-                  else setMeId(String(p.id));
-                }}
-              >
-                <span className={`avatar ${tone(p.id)}`} aria-hidden="true">
-                  {isMine ? '🎁' : p.drawn ? '✓' : avatar(p.id)}
-                </span>
-                <span className="player-name">{p.name}</span>
-                {isMine && <span className="player-note">pokaż mój wynik</span>}
-                {disabled && <span className="player-note">już losował/a</span>}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+        <ul className="players">
+          {draw.participants.map((p) => {
+            const isMine = results.some((r) => sameParticipant(r, p));
+            const disabled = p.drawn && !isMine;
+            return (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  className={`player ${isMine ? 'mine' : ''}`}
+                  disabled={disabled}
+                  aria-label={
+                    isMine ? `${p.name} — pokaż mój wynik` : p.drawn ? `${p.name} — już losował(a)` : `${p.name} — losuj`
+                  }
+                  onClick={() => {
+                    setError('');
+                    if (isMine) setViewing(p.id);
+                    else setMeId(String(p.id));
+                  }}
+                >
+                  <span className={`avatar ${tone(p.id)}`} aria-hidden="true">
+                    {isMine ? '🎁' : p.drawn ? '✓' : avatar(p.id)}
+                  </span>
+                  <span className="player-name">{p.name}</span>
+                  {isMine && <span className="player-note">pokaż mój wynik</span>}
+                  {disabled && <span className="player-note">już losował/a</span>}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
 
-      {free.length > 0 && (
-        <p className="hint">
-          Wybierz tylko siebie. Z jednego komputera może losować kilka osób — każda po kolei klika swoje imię.
-        </p>
-      )}
-    </div>
+        {free.length > 0 && (
+          <p className="hint">
+            Wybierz tylko siebie. Z jednego komputera może losować kilka osób — każda po kolei klika swoje imię.
+          </p>
+        )}
+      </div>
+      {psst}
+    </>
   );
 }
 

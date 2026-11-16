@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const KEY = 'gwiazdka:psst-ukryte';
 
 /** Mała karteczka w rogu: „Psst… załóż własną”. Można ją zamknąć (pamiętane w przeglądarce). */
-export default function Psst({ to = '/lista', what = 'listę' }) {
+export default function Psst() {
   const [hidden, setHidden] = useState(() => {
     try {
       return localStorage.getItem(KEY) === '1';
@@ -29,9 +29,10 @@ export default function Psst({ to = '/lista', what = 'listę' }) {
       <button type="button" className="psst-close" onClick={close} aria-label="Zamknij podpowiedź">✕</button>
       <p className="psst-title">Psst… 🤫</p>
       <p>
-        Też organizujesz święta? Załóż własną {what} — za darmo i bez rejestracji. Wyślesz rodzinie link i po kłopocie.
+        Też organizujesz święta? Załóż własne losowanie prezentów albo listę „kto co przynosi” — za darmo i bez
+        rejestracji. Wyślesz rodzinie link i po kłopocie.
       </p>
-      <Link className="btn small" to={to}>Załóż swoją ✨</Link>
+      <Link className="btn small" to="/">Zobacz, jak to działa ✨</Link>
     </aside>
   );
 }

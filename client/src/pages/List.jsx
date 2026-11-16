@@ -372,7 +372,7 @@ export default function List({ asOrganizer = false }) {
         </div>
       )}
 
-      {!organizer && !savedOrgKey && <Psst to="/lista" what="listę" />}
+      {!organizer && !savedOrgKey && <Psst />}
     </>
   );
 }
