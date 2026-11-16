@@ -22,7 +22,7 @@ export default function List({ asOrganizer = false }) {
   const [data, setData] = useState(null);
   const [keys, setKeys] = useState(() => itemKeys.all(slug));
   const [name, setName] = useState(myName.get);
-  const [form, setForm] = useState({ title: '', note: '' });
+  const [form, setForm] = useState({ title: '', note: '', who: null }); // who: null = „ja” (pole imienia)
   const [needed, setNeeded] = useState('');
   const [editing, setEditing] = useState(null); // { id, title, note, who }
   const [busy, setBusy] = useState(false);
@@ -100,19 +100,24 @@ export default function List({ asOrganizer = false }) {
     }
   }
 
+  const bringer = (form.who ?? name).trim();
+
   async function add(e) {
     e.preventDefault();
-    if (needName()) return;
+    if (!bringer) {
+      setError('Wpisz, kto to przyniesie.');
+      return;
+    }
     const title = form.title.trim();
     const dup = data.items.find((i) => lower(i.title) === lower(title));
     if (dup && !window.confirm(`„${dup.title}” już jest na liście${dup.who ? ` (przynosi ${dup.who})` : ''}. Dodać mimo to?`)) return;
     const res = await run(
-      () => api.addItem(slug, null, { title, note: form.note, who: name.trim() }),
-      `Dopisane: ${title}. Dziękujemy! 🎄`,
+      () => api.addItem(slug, null, { title, note: form.note, who: bringer }),
+      `Dopisane: ${bringer} — ${title}. Dziękujemy! 🎄`,
     );
     if (res) {
       rememberKey(res.id, res.key);
-      setForm({ title: '', note: '' });
+      setForm({ title: '', note: '', who: null });
     }
   }
 
@@ -201,7 +206,7 @@ export default function List({ asOrganizer = false }) {
         <span className="item-text">
           <span className="item-title">{item.title}</span>
           {item.note && <span className="item-note">{item.note}</span>}
-          {keys[item.id] && inGroup && <span className="item-badge">Twój wpis</span>}
+          {keys[item.id] && inGroup && <span className="item-badge">dodane przez Ciebie</span>}
         </span>
         <span className="row-actions">
           {!inGroup && (
@@ -308,17 +313,27 @@ export default function List({ asOrganizer = false }) {
       </div>
 
       <form className="card" onSubmit={add}>
-        <h2>Dopisz, co przyniesiesz ✍️</h2>
+        <h2>Dopisz do listy ✍️</h2>
         <label className="field">
-          <span>Co przyniesiesz?</span>
+          <span>Co?</span>
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="np. Sernik" maxLength={80} required />
         </label>
         <label className="field">
           <span>Uwagi (nieobowiązkowe)</span>
           <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="np. duża blacha, bez orzechów" maxLength={120} />
         </label>
-        <p className="hint">Wpiszemy jako: <strong>{name.trim() || '— najpierw wpisz imię na górze —'}</strong></p>
-        <button className="btn big" disabled={busy || !form.title.trim()}>Dopisz do listy ✨</button>
+        <label className="field">
+          <span>Kto przyniesie?</span>
+          <input
+            value={form.who ?? name}
+            onChange={(e) => setForm({ ...form, who: e.target.value })}
+            placeholder="np. Justyna"
+            maxLength={60}
+            required
+          />
+        </label>
+        <p className="hint">Domyślnie Ty — możesz też wpisać kogoś innego, np. „Justyna” przyniesie sałatkę.</p>
+        <button className="btn big" disabled={busy || !form.title.trim() || !bringer}>Dopisz do listy ✨</button>
       </form>
 
       {organizer && (
