@@ -5,6 +5,7 @@ import { adminToken, links } from '../storage.js';
 import CopyField from '../CopyField.jsx';
 import { useTitle } from '../useTitle.js';
 import StatusList from '../StatusList.jsx';
+import { formatDate, formatDateTime } from '../date.js';
 
 export default function Admin() {
   const [token, setToken] = useState(adminToken.get);
@@ -85,7 +86,9 @@ function Dashboard({ token, onUnauthorized }) {
             <li key={d.slug}>
               <button className="draw-row" onClick={() => setSelected(d.slug)}>
                 <span className="who">{d.drawn === d.total ? '🎉' : '🎄'} {d.name}</span>
-                <span className="when">{d.drawn}/{d.total} wylosowało</span>
+                <span className="when">
+                  {d.drawn}/{d.total} wylosowało · {formatDate(d.createdAt)}
+                </span>
               </button>
             </li>
           ))}
@@ -103,7 +106,9 @@ function Dashboard({ token, onUnauthorized }) {
             <li key={l.slug}>
               <Link className="draw-row" to={`/l/${l.slug}/organizator`}>
                 <span className="who">🥟 {l.name}</span>
-                <span className="when">{l.taken}/{l.total} ma kogoś</span>
+                <span className="when">
+                  {l.taken}/{l.total} ma kogoś · {formatDate(l.createdAt)}
+                </span>
               </Link>
             </li>
           ))}
@@ -135,6 +140,7 @@ function DrawDetails({ token, slug, guard, onBack }) {
     <div className="card">
       <button className="btn ghost small" onClick={onBack}>← Wszystkie losowania</button>
       <h1 className="festive">{data.name}</h1>
+      <p className="muted">Założone {formatDateTime(data.createdAt)}</p>
       <CopyField label="🔗 Link do losowania" value={links.draw(slug)} />
       <StatusList
         participants={data.participants}

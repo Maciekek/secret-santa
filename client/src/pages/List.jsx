@@ -5,6 +5,7 @@ import { adminToken, itemKeys, links, myLists, myName } from '../storage.js';
 import CopyField from '../CopyField.jsx';
 import Psst from '../Psst.jsx';
 import { useTitle } from '../useTitle.js';
+import { formatDateTime } from '../date.js';
 
 const AVATARS = ['🎅', '🤶', '🧝', '⛄', '🦌', '👼', '🐧', '🍪'];
 const lower = (s) => s.toLocaleLowerCase('pl');
@@ -232,6 +233,7 @@ export default function List({ asOrganizer = false }) {
           <span className="item-title">{item.title}</span>
           {item.note && <span className="item-note">{item.note}</span>}
           {keys[item.id] && inGroup && <span className="item-badge">dodane przez Ciebie</span>}
+          {organizer && <span className="item-date">dodane {formatDateTime(item.createdAt)}</span>}
         </span>
         <span className="row-actions">
           {!inGroup && (
@@ -271,6 +273,7 @@ export default function List({ asOrganizer = false }) {
         {organizer ? (
           <>
             <p className="muted intro">Panel organizatora — możesz dopisywać potrzebne rzeczy i poprawiać wszystkie wpisy.</p>
+            <p className="muted intro">Lista założona {formatDateTime(data.createdAt)}</p>
             <CopyField label="🔗 Link do listy — wyślij rodzinie" value={links.list(slug)} />
             {orgKey && (
               <>

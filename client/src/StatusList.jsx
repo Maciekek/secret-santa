@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from './api.js';
+import { formatDateTime as fmt } from './date.js';
 
-const fmt = (sqlDate) => (sqlDate ? new Date(`${sqlDate.replace(' ', 'T')}Z`).toLocaleString('pl-PL') : '');
 const MIN_PEOPLE = 3;
 
 /**

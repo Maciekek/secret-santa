@@ -373,7 +373,8 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
 .group .item + .item { border-top: 1px dashed #d9c9bd; }
 .group .item.mine { background: #eef7f1; }
 .group .item-title::before { content: '•'; color: var(--red); margin-right: 0.45rem; }
-.group .item-note, .group .item-badge { padding-left: 0.95rem; } /* pod tytułem, za kropką */
+.item-date { color: var(--muted); font-size: 0.85rem; }
+.group .item-note, .group .item-badge, .group .item-date { padding-left: 0.95rem; } /* pod tytułem, za kropką */
 .avatar.small { width: 2.4rem; height: 2.4rem; font-size: 1.3rem; }
 .item {
   display: flex;
