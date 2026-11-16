@@ -1,6 +1,7 @@
 import { transaction } from './db.js';
 import { randomToken, safeEqual } from './crypto.js';
 import { HttpError, bearer, cleanText } from './http.js';
+import { readableSlug } from './slug.js';
 
 /*
  * Lista „kto co przynosi” (wspólna zrzutka na Wigilię).
@@ -100,7 +101,8 @@ export function registerLists(app, { db, crypto, requireAdmin }) {
     if (!name) throw new HttpError(400, 'Podaj nazwę listy');
     if (titles.length > MAX_ITEMS) throw new HttpError(400, `Najwyżej ${MAX_ITEMS} pozycji`);
 
-    const slug = randomToken(9);
+    let slug = readableSlug(name, 'lista');
+    while (q.list.get(slug)) slug = readableSlug(name, 'lista');
     const organizerKey = randomToken(18);
     transaction(db, () => {
       q.insertList.run(slug, name, crypto.hash(organizerKey));

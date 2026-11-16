@@ -20,7 +20,7 @@
 ## Jak działa lista „kto co przynosi”
 
 1. Organizator zakłada listę i opcjonalnie wpisuje, czego potrzeba (barszcz, makowiec…).
-   Dostaje link `/l/<slug>` dla rodziny i `/l/<slug>/organizator#<klucz>` dla siebie.
+   Dostaje link `/l/<slug>` dla rodziny (slug = 6 losowych znaków + nazwa listy, np. `/l/k7m2qx-wigilia-u-babci`) i `/l/<slug>/organizator#<klucz>` dla siebie.
 2. Gość wpisuje imię (pamiętane w `localStorage`), klika „Ja przyniosę” przy potrzebnej rzeczy
    albo dopisuje własną pozycję. Wszyscy widzą całą listę, pogrupowaną po osobach.
 3. Uprawnienia: przy dodaniu wpisu przeglądarka dostaje klucz do niego (w bazie tylko HMAC).

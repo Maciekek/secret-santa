@@ -97,3 +97,19 @@ test('lista: walidacja', () =>
     assert.equal((await call('POST', `/lists/${slug}/items/999/claim`, { who: 'Ania' })).status, 404);
     assert.equal((await call('GET', '/lists/nie-ma')).status, 404);
   }));
+
+test('slug listy: losowy początek + czytelna nazwa', async () => {
+  const { slugify, readableSlug } = await import('../src/slug.js');
+  assert.equal(slugify('Wigilia u Babci 2026!'), 'wigilia-u-babci-2026');
+  assert.equal(slugify('Żółć, łąka & Śledzie'), 'zolc-laka-sledzie');
+  assert.equal(slugify('🎄🎄'), '');
+  assert.ok(slugify('Bardzo długa nazwa listy na święta u cioci Basi i wujka Zbyszka').length <= 40);
+  assert.match(readableSlug('Wigilia u babci', 'lista'), /^[a-z2-9]{6}-wigilia-u-babci$/);
+  assert.match(readableSlug('🎄', 'lista'), /^[a-z2-9]{6}-lista$/);
+
+  await withServer(async (call) => {
+    const { slug } = (await call('POST', '/lists', { name: 'Wigilia u Kowalskich' })).body;
+    assert.match(slug, /^[a-z2-9]{6}-wigilia-u-kowalskich$/);
+    assert.equal((await call('GET', `/lists/${slug}`)).status, 200);
+  });
+});
