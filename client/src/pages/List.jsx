@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { adminToken, itemKeys, links, myLists, myName } from '../storage.js';
 import CopyField from '../CopyField.jsx';
+import Psst from '../Psst.jsx';
 import { useTitle } from '../useTitle.js';
 
 const AVATARS = ['🎅', '🤶', '🧝', '⛄', '🦌', '👼', '🐧', '🍪'];
@@ -284,7 +285,9 @@ export default function List({ asOrganizer = false }) {
             {savedOrgKey && (
               <div className="notice">
                 <p>🗝️ Ta lista została założona w tej przeglądarce.</p>
-                <Link className="btn small" to={`/l/${slug}/organizator#${savedOrgKey}`}>Otwórz panel organizatora</Link>
+                <div className="notice-action">
+                  <Link className="btn small" to={`/l/${slug}/organizator#${savedOrgKey}`}>Otwórz panel organizatora</Link>
+                </div>
               </div>
             )}
           </>
@@ -369,11 +372,7 @@ export default function List({ asOrganizer = false }) {
         </div>
       )}
 
-      {!organizer && (
-        <p className="foot-link">
-          <Link to="/lista">Załóż własną listę</Link>
-        </p>
-      )}
+      {!organizer && !savedOrgKey && <Psst to="/lista" what="listę" />}
     </>
   );
 }

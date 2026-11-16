@@ -296,6 +296,7 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
   font-weight: 700;
 }
 .notice p { margin: 0 0 0.6rem; }
+.notice-action { text-align: center; }
 .add-person .field { margin-bottom: 0.5rem; }
 .who { font-weight: 800; flex: 1; min-width: 8rem; }
 .when { color: var(--muted); font-size: 0.95rem; }
@@ -377,8 +378,23 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
 .item-badge { color: var(--green-dark); font-size: 0.9rem; font-weight: 700; }
 .item-edit { width: 100%; }
 .item-edit .field { margin: 0.5rem 0; }
-.foot-link { text-align: center; }
-.foot-link a { color: #fff; font-weight: 800; }
+/* karteczka „Psst…” — na szerokim ekranie przyklejona w lewym dolnym rogu, na telefonie pod treścią */
+.psst {
+  position: relative;
+  background: #fff8e8;
+  border: 2px dashed var(--gold);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem 1.1rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  transform: rotate(-1.5deg);
+}
+.psst p { margin: 0 0 0.75rem; line-height: 1.45; }
+.psst-title { font-family: 'Lobster', cursive; font-size: 1.5rem; color: var(--red); margin-bottom: 0.25rem !important; }
+.psst-close { position: absolute; top: 0.25rem; right: 0.25rem; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; min-width: 44px; min-height: 44px; border-radius: 50%; }
+.psst-close:hover { color: var(--red); }
+@media (min-width: 1180px) {
+  .psst { position: fixed; left: 1.5rem; bottom: 1.5rem; width: 280px; z-index: 2; }
+}
 .ok:empty { display: none; }
 
 .admin-section { margin-top: 1.5rem; }
