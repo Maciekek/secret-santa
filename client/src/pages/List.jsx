@@ -275,10 +275,6 @@ export default function List({ asOrganizer = false }) {
         )}
         {asOrganizer && !organizer && <p className="error">Nieprawidłowy link organizatora — widzisz listę jak gość.</p>}
 
-        <p className="muted summary">
-          🍽️ {taken.length} {taken.length === 1 ? 'rzecz' : 'rzeczy'} od {people.length} {people.length === 1 ? 'osoby' : 'osób'}
-          {open.length > 0 && <> · 🙏 jeszcze potrzebne: {open.length}</>}
-        </p>
         {error && <p className="error" role="alert">{error}</p>}
         <p className="ok" role="status">{notice}</p>
       </div>

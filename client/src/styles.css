@@ -355,7 +355,6 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
 .back-link { display: inline-block; color: var(--green); font-weight: 800; margin-bottom: 0.5rem; padding: 0.4rem 0; }
 
 /* ---------- lista „kto co przynosi” ---------- */
-.summary { margin: 0.25rem 0 0; }
 .items, .groups { list-style: none; padding: 0; margin: 0.75rem 0 0; display: grid; gap: 0.5rem; }
 .groups { gap: 1.1rem; }
 .group-who { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-size: 1.2rem; }
