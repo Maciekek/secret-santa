@@ -1,5 +1,5 @@
 # Dev z hot reloadem: docker compose -f docker-compose.dev.yml up
-# Front: http://localhost:5173  (proxy /api -> server:3000)
+# Front: http://localhost:5173, API: http://localhost:3001 (porty: CLIENT_PORT / SERVER_PORT)
 services:
   server:
     image: node:24-alpine
@@ -10,7 +10,7 @@ services:
       DB_PATH: /data/gwiazdka.db
       ADMIN_PASSWORD: admin
     ports:
-      - "3000:3000"
+      - "${SERVER_PORT:-3001}:3000"   # 3000 na hoście bywa zajęty
     volumes:
       - ./server:/app
       - server-modules:/app/node_modules
@@ -24,7 +24,7 @@ services:
       API_PROXY_TARGET: http://server:3000
       CHOKIDAR_USEPOLLING: "1"
     ports:
-      - "5173:5173"
+      - "${CLIENT_PORT:-5173}:5173"
     volumes:
       - ./client:/app
       - client-modules:/app/node_modules

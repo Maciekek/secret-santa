@@ -39,7 +39,7 @@
 make dev          # albo: docker compose -f docker-compose.dev.yml up
 ```
 
-- front: http://localhost:5173 (hot reload), API: http://localhost:3000
+- front: http://localhost:5173 (hot reload), API: http://localhost:3001 (inne porty: `SERVER_PORT=… CLIENT_PORT=… make dev`)
 - admin w dev: hasło `admin`
 - testy backendu: `make test`
 
@@ -49,7 +49,7 @@ GitHub Actions (`.github/workflows/docker.yml`) przy każdym pushu na `main` pus
 i buduje obraz `ghcr.io/maciekek/secret-santa` (amd64 + arm64). Serwer tylko go pobiera —
 instrukcja w [`deploy/README.md`](deploy/README.md).
 
-- Lokalny podgląd obrazu prod: `make preview` → http://localhost:3000
+- Lokalny podgląd obrazu prod: `make preview` → http://localhost:3002 (`PREVIEW_PORT=…`)
 - **Nie zmieniaj `APP_SECRET`** po utworzeniu losowań — stare pary przestaną się odszyfrowywać.
 
 ## API
