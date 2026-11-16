@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { adminToken, itemKeys, links, myLists, myName } from '../storage.js';
@@ -21,15 +21,16 @@ export default function List({ asOrganizer = false }) {
 
   const [data, setData] = useState(null);
   const [keys, setKeys] = useState(() => itemKeys.all(slug));
+  // Ostatnio wpisane imię — podpowiadamy je w polach „Kto przyniesie?”.
   const [name, setName] = useState(myName.get);
-  const [form, setForm] = useState({ title: '', note: '', who: null }); // who: null = „ja” (pole imienia)
+  const [form, setForm] = useState({ title: '', note: '', who: null }); // who: null = ostatnio wpisane imię
+  const [claiming, setClaiming] = useState(null); // { id, who } — „Ja przyniosę” rozwinięte w wierszu
   const [needed, setNeeded] = useState('');
   const [editing, setEditing] = useState(null); // { id, title, note, who }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState('');
   const [notice, setNotice] = useState('');
-  const nameInput = useRef(null);
   useTitle(data ? `🥟 ${data.name}` : null);
 
   const organizer = Boolean(data?.organizer);
@@ -70,16 +71,9 @@ export default function List({ asOrganizer = false }) {
     setKeys(itemKeys.all(slug));
   }
 
-  function changeName(value) {
+  function rememberName(value) {
     setName(value);
-    myName.set(value.trim());
-  }
-
-  function needName() {
-    if (name.trim()) return false;
-    setError('Najpierw wpisz swoje imię — na górze strony.');
-    nameInput.current?.focus();
-    return true;
+    myName.set(value);
   }
 
   async function run(action, success) {
@@ -117,6 +111,7 @@ export default function List({ asOrganizer = false }) {
     );
     if (res) {
       rememberKey(res.id, res.key);
+      rememberName(bringer);
       setForm({ title: '', note: '', who: null });
     }
   }
@@ -127,10 +122,16 @@ export default function List({ asOrganizer = false }) {
     if (res) setNeeded('');
   }
 
-  async function claim(item) {
-    if (needName()) return;
-    const res = await run(() => api.claimItem(slug, item.id, name.trim()), `Super! ${item.title} — przynosisz Ty. 🎁`);
-    if (res) rememberKey(item.id, res.key);
+  async function claim(e) {
+    e.preventDefault();
+    const item = data.items.find((i) => i.id === claiming.id);
+    const who = claiming.who.trim();
+    const res = await run(() => api.claimItem(slug, item.id, who), `Super! ${item.title} — przynosi ${who}. 🥟`);
+    if (res) {
+      rememberKey(item.id, res.key);
+      rememberName(who);
+      setClaiming(null);
+    }
   }
 
   async function unclaim(item) {
@@ -172,7 +173,28 @@ export default function List({ asOrganizer = false }) {
   }
 
   const itemRow = (item, { inGroup }) =>
-    editing?.id === item.id ? (
+    claiming?.id === item.id ? (
+      <li key={item.id} className="item">
+        <form className="item-edit" onSubmit={claim}>
+          <span className="item-title">{item.title}</span>
+          <label className="field">
+            <span>Kto przyniesie?</span>
+            <input
+              value={claiming.who}
+              onChange={(e) => setClaiming({ ...claiming, who: e.target.value })}
+              placeholder="Wpisz swoje imię"
+              maxLength={60}
+              required
+              autoFocus
+            />
+          </label>
+          <div className="row-actions">
+            <button className="btn small" disabled={busy || !claiming.who.trim()}>Potwierdź</button>
+            <button type="button" className="btn ghost small" onClick={() => setClaiming(null)}>Anuluj</button>
+          </div>
+        </form>
+      </li>
+    ) : editing?.id === item.id ? (
       <li key={item.id} className="item">
         <form className="item-edit" onSubmit={saveEdit}>
           <label className="field">
@@ -210,7 +232,7 @@ export default function List({ asOrganizer = false }) {
         </span>
         <span className="row-actions">
           {!inGroup && (
-            <button type="button" className="btn small" disabled={busy} onClick={() => claim(item)}>
+            <button type="button" className="btn small" disabled={busy} onClick={() => { setEditing(null); setClaiming({ id: item.id, who: name }); }}>
               Ja przyniosę
             </button>
           )}
@@ -219,7 +241,7 @@ export default function List({ asOrganizer = false }) {
               type="button"
               className="btn ghost small"
               disabled={busy}
-              onClick={() => setEditing({ id: item.id, title: item.title, note: item.note, who: item.who ?? '' })}
+              onClick={() => { setClaiming(null); setEditing({ id: item.id, title: item.title, note: item.note, who: item.who ?? '' }); }}
               aria-label={`Zmień: ${item.title}`}
             >
               Zmień
@@ -253,19 +275,8 @@ export default function List({ asOrganizer = false }) {
         )}
         {asOrganizer && !organizer && <p className="error">Nieprawidłowy link organizatora — widzisz listę jak gość.</p>}
 
-        <label className="field">
-          <span>Twoje imię</span>
-          <input
-            ref={nameInput}
-            value={name}
-            onChange={(e) => changeName(e.target.value)}
-            placeholder="np. Ciocia Basia"
-            maxLength={60}
-            autoComplete="given-name"
-          />
-        </label>
         <p className="muted summary">
-          🎁 {taken.length} {taken.length === 1 ? 'rzecz' : 'rzeczy'} od {people.length} {people.length === 1 ? 'osoby' : 'osób'}
+          🍽️ {taken.length} {taken.length === 1 ? 'rzecz' : 'rzeczy'} od {people.length} {people.length === 1 ? 'osoby' : 'osób'}
           {open.length > 0 && <> · 🙏 jeszcze potrzebne: {open.length}</>}
         </p>
         {error && <p className="error" role="alert">{error}</p>}
@@ -295,7 +306,7 @@ export default function List({ asOrganizer = false }) {
       )}
 
       <div className="card">
-        <h2>Kto co przynosi 🎁</h2>
+        <h2>Kto co przynosi 🍲</h2>
         {people.length === 0 ? (
           <p className="muted">Jeszcze nikt się nie wpisał. Bądź pierwszy!</p>
         ) : (
@@ -332,7 +343,7 @@ export default function List({ asOrganizer = false }) {
             required
           />
         </label>
-        <p className="hint">Domyślnie Ty — możesz też wpisać kogoś innego, np. „Justyna” przyniesie sałatkę.</p>
+        <p className="hint">Możesz wpisać siebie albo kogoś innego — np. że wujek Zbyszek przyniesie śledzie.</p>
         <button className="btn big" disabled={busy || !form.title.trim() || !bringer}>Dopisz do listy ✨</button>
       </form>
 
