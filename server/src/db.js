@@ -47,6 +47,14 @@ export function openDb(dbPath) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_list_items_list ON list_items(list_slug);
+
+    -- Dziennik działań admina (podglądy par, usunięcia) — przeżywa restarty kontenera.
+    CREATE TABLE IF NOT EXISTS admin_log (
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,
+      at      TEXT NOT NULL DEFAULT (datetime('now')),
+      action  TEXT NOT NULL,
+      details TEXT NOT NULL
+    );
   `);
   return db;
 }

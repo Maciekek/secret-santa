@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { links, myDraws } from '../storage.js';
 import CopyField from '../CopyField.jsx';
+import Share from '../Share.jsx';
 import { useTitle } from '../useTitle.js';
 
 export default function NewDraw() {
@@ -61,6 +62,7 @@ export default function NewDraw() {
           widzi.
         </p>
         <CopyField label="🔗 Link do losowania — wyślij rodzinie" value={links.draw(created.slug)} />
+        <Share url={links.draw(created.slug)} text={`🎁 ${created.name} — wejdź i wylosuj, komu robisz prezent:`} />
         <CopyField label="🗝️ Twój link organizatora — zachowaj dla siebie" value={links.organizer(created.slug, created.key)} />
         <p className="hint">
           Link organizatora pokazuje, kto już losował (ale nie kogo wylosował). Zapisaliśmy go też w tej przeglądarce.

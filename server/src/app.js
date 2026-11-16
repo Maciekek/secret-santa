@@ -6,7 +6,7 @@ import { randomMatching } from './derangement.js';
 import { transaction } from './db.js';
 import { randomToken, safeEqual } from './crypto.js';
 import { metaFor, renderHtml, robotsTxt, sitemapXml } from './seo.js';
-import { HttpError, bearer, cleanText } from './http.js';
+import { HttpError, bearer, cleanText, rateLimit } from './http.js';
 import { registerLists } from './lists.js';
 import { readableSlug } from './slug.js';
 
@@ -46,6 +46,8 @@ export function createApp({ db, crypto, config }) {
       FROM draws d LEFT JOIN participants p ON p.draw_slug = d.slug
       GROUP BY d.slug ORDER BY d.created_at DESC`),
     deleteDraw: db.prepare('DELETE FROM draws WHERE slug = ?'),
+    insertLog: db.prepare('INSERT INTO admin_log (action, details) VALUES (?, ?)'),
+    log: db.prepare('SELECT id, at, action, details FROM admin_log ORDER BY id DESC LIMIT 200'),
   };
 
   function getDraw(slug) {
@@ -124,22 +126,43 @@ export function createApp({ db, crypto, config }) {
     next();
   }
 
-  const loginAttempts = new Map();
-  function loginLimiter(req, _res, next) {
-    const now = Date.now();
-    const entry = loginAttempts.get(req.ip) || { count: 0, reset: now + 15 * 60_000 };
-    if (entry.reset < now) Object.assign(entry, { count: 0, reset: now + 15 * 60_000 });
-    entry.count += 1;
-    loginAttempts.set(req.ip, entry);
-    if (entry.count > 10) return next(new HttpError(429, 'Za dużo prób, Mikołaj każe odczekać'));
-    next();
-  }
+  // ---------- limity (ochrona przed zasypaniem bazy na słabym VPS) ----------
+
+  const limits = { create: 20, writes: 300, login: 10, ...config.rateLimits };
+  const isAdmin = (req) => crypto.verifyAdminToken(bearer(req));
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60_000,
+    max: limits.login,
+    message: 'Za dużo prób, Mikołaj każe odczekać',
+  });
+  // Zakładanie losowań i list: na godzinę z jednego adresu.
+  const createLimiter = rateLimit({
+    windowMs: 60 * 60_000,
+    max: limits.create,
+    message: 'Za dużo nowych losowań i list naraz — elfy nie nadążają. Spróbuj za godzinę.',
+    skip: isAdmin,
+  });
+  // Wszystkie inne zapisy (losowanie, wpisy na listach, edycje) — na 10 minut z jednego adresu.
+  const writeLimiter = rateLimit({
+    windowMs: 10 * 60_000,
+    max: limits.writes,
+    message: 'Za dużo zmian naraz — odczekaj kilka minut.',
+    skip: isAdmin,
+  });
+  app.use('/api', (req, res, next) => (req.method === 'GET' ? next() : writeLimiter(req, res, next)));
+
+  // ---------- dziennik admina (trwały, w bazie) ----------
+
+  const logAdmin = (action, details) => {
+    q.insertLog.run(action, details);
+    console.log(`[admin] ${action}: ${details}`);
+  };
 
   // ---------- publiczne ----------
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-  app.post('/api/draws', (req, res) => {
+  app.post('/api/draws', createLimiter, (req, res) => {
     const name = cleanName(req.body?.name);
     const names = Array.isArray(req.body?.participants)
       ? req.body.participants.map(cleanName).filter(Boolean)
@@ -264,23 +287,27 @@ export function createApp({ db, crypto, config }) {
     const me = q.participant.get(draw.slug, Number(req.params.id));
     if (!me) throw new HttpError(404, 'Nie ma takiej osoby');
     const target = q.participant.get(draw.slug, Number(crypto.decrypt(me.target_enc)));
-    console.log(`[admin] podgląd pary: losowanie=${draw.slug} osoba=${me.id}`);
+    logAdmin('podgląd pary', `${draw.name} (${draw.slug}) — ${me.name}`);
     res.json({ target: target.name });
   });
 
   app.post('/api/admin/draws/:slug/reshuffle', requireAdmin, (req, res) => {
     const draw = getDraw(req.params.slug);
     transaction(db, () => shuffle(draw.slug));
+    logAdmin('losowanie od nowa', `${draw.name} (${draw.slug})`);
     res.json({ participants: statusView(draw.slug) });
   });
 
   app.delete('/api/admin/draws/:slug', requireAdmin, (req, res) => {
-    getDraw(req.params.slug);
+    const draw = getDraw(req.params.slug);
     q.deleteDraw.run(req.params.slug);
+    logAdmin('usunięcie losowania', `${draw.name} (${draw.slug})`);
     res.status(204).end();
   });
 
-  registerLists(app, { db, crypto, requireAdmin });
+  app.get('/api/admin/log', requireAdmin, (_req, res) => res.json(q.log.all()));
+
+  registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin });
 
   app.use('/api', (_req, _res, next) => next(new HttpError(404, 'Nie znaleziono')));
 

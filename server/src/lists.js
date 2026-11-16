@@ -14,7 +14,7 @@ import { readableSlug } from './slug.js';
 const MAX_ITEMS = 200;
 const LEN = { name: 60, title: 80, note: 120, who: 60 };
 
-export function registerLists(app, { db, crypto, requireAdmin }) {
+export function registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin }) {
   const q = {
     list: db.prepare('SELECT slug, name, organizer_key, created_at FROM lists WHERE slug = ?'),
     items: db.prepare(
@@ -93,7 +93,7 @@ export function registerLists(app, { db, crypto, requireAdmin }) {
 
   // ---------- zakładanie i odczyt ----------
 
-  app.post('/api/lists', (req, res) => {
+  app.post('/api/lists', createLimiter, (req, res) => {
     const name = cleanText(req.body?.name, LEN.name);
     const titles = Array.isArray(req.body?.items)
       ? req.body.items.map((t) => cleanText(t, LEN.title)).filter(Boolean)
@@ -118,6 +118,7 @@ export function registerLists(app, { db, crypto, requireAdmin }) {
 
   app.delete('/api/lists/:slug', requireListOrganizer, (req, res) => {
     q.deleteList.run(req.list.slug);
+    if (isAdmin(req)) logAdmin('usunięcie listy', `${req.list.name} (${req.list.slug})`);
     res.status(204).end();
   });
 

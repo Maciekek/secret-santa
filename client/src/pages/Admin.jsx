@@ -114,7 +114,39 @@ function Dashboard({ token, onUnauthorized }) {
           ))}
         </ul>
       )}
+
+      <AdminLog token={token} guard={guard} />
     </div>
+  );
+}
+
+/** Dziennik działań admina (podglądy par, usunięcia) — trzymany w bazie. */
+function AdminLog({ token, guard }) {
+  const [log, setLog] = useState(null);
+
+  function toggle(e) {
+    if (e.currentTarget.open && !log) api.adminLog(token).then(setLog).catch(guard);
+  }
+
+  return (
+    <details className="admin-log" onToggle={toggle}>
+      <summary>📜 Dziennik admina</summary>
+      {!log ? (
+        <p>Wczytuję…</p>
+      ) : log.length === 0 ? (
+        <p className="muted">Pusto — nikt niczego nie podglądał.</p>
+      ) : (
+        <ul className="status">
+          {log.map((e) => (
+            <li key={e.id}>
+              <span className="who">{e.action}</span>
+              <span className="when">{formatDateTime(e.at)}</span>
+              <span className="log-details">{e.details}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </details>
   );
 }
 

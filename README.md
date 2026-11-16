@@ -73,7 +73,15 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
 - `POST /api/admin/login` `{ password }` → `{ token }`
 - `GET /api/admin/draws`, `GET /api/admin/draws/:slug`,
   `POST /api/admin/draws/:slug/participants/:id/reveal`, `POST /api/admin/draws/:slug/reshuffle`,
-  `DELETE /api/admin/draws/:slug`, `GET /api/admin/lists` — nagłówek `Authorization: Bearer <token>`
+  `DELETE /api/admin/draws/:slug`, `GET /api/admin/lists`, `GET /api/admin/log` — nagłówek `Authorization: Bearer <token>`
+
+## Zabezpieczenia
+
+- Limity na adres IP (w pamięci, 429 po przekroczeniu): zakładanie losowań i list 20/h, pozostałe zapisy
+  300 / 10 min, logowanie admina 10 / 15 min. Zalogowany admin nie ma limitów. Pierwsze przekroczenie
+  w oknie trafia do logu jako `[limit] …`.
+- Dziennik admina (tabela `admin_log`, widok „📜 Dziennik admina” w `/admin`): podglądy par, losowanie od nowa,
+  usunięcia. Zapisuje tylko, czyją parę podejrzano — nigdy wynik.
 
 ## SEO / Open Graph
 

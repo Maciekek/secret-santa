@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { links, myLists } from '../storage.js';
 import CopyField from '../CopyField.jsx';
+import Share from '../Share.jsx';
 import { useTitle } from '../useTitle.js';
 
 const EXAMPLES = ['Barszcz', 'Pierogi', 'Karp', 'Makowiec', 'Sałatka jarzynowa', 'Kompot z suszu'];
@@ -63,6 +64,7 @@ export default function NewList() {
           brakuje.
         </p>
         <CopyField label="🔗 Link do listy — wyślij rodzinie" value={links.list(created.slug)} />
+        <Share url={links.list(created.slug)} text={`🥟 ${created.name} — wpisz, co przyniesiesz:`} />
         <CopyField label="🗝️ Twój link organizatora — zachowaj dla siebie" value={links.listOrganizer(created.slug, created.key)} />
         <p className="hint">
           Z linkiem organizatora możesz dopisywać potrzebne rzeczy i poprawiać wszystkie wpisy. Zapisaliśmy go też w tej

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { adminToken, itemKeys, links, myLists, myName } from '../storage.js';
 import CopyField from '../CopyField.jsx';
+import Share from '../Share.jsx';
 import Psst from '../Psst.jsx';
 import { useTitle } from '../useTitle.js';
 import { formatDateTime } from '../date.js';
@@ -275,6 +276,7 @@ export default function List({ asOrganizer = false }) {
             <p className="muted intro">Panel organizatora — możesz dopisywać potrzebne rzeczy i poprawiać wszystkie wpisy.</p>
             <p className="muted intro">Lista założona {formatDateTime(data.createdAt)}</p>
             <CopyField label="🔗 Link do listy — wyślij rodzinie" value={links.list(slug)} />
+            <Share url={links.list(slug)} text={`🥟 ${data.name} — wpisz, co przyniesiesz:`} />
             {orgKey && (
               <>
                 <CopyField label="🗝️ Twój link organizatora — zachowaj dla siebie" value={links.listOrganizer(slug, orgKey)} />

@@ -53,4 +53,5 @@ export const api = {
   adminReshuffle: (t, slug) => request('POST', `/admin/draws/${slug}/reshuffle`, admin(t)),
   adminDelete: (t, slug) => request('DELETE', `/admin/draws/${slug}`, admin(t)),
   adminLists: (t) => request('GET', '/admin/lists', admin(t)),
+  adminLog: (t) => request('GET', '/admin/log', admin(t)),
 };

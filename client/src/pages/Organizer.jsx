@@ -3,6 +3,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { api, asOrganizer } from '../api.js';
 import { links, myDraws } from '../storage.js';
 import CopyField from '../CopyField.jsx';
+import Share from '../Share.jsx';
 import { useTitle } from '../useTitle.js';
 import StatusList from '../StatusList.jsx';
 
@@ -49,6 +50,7 @@ export default function Organizer() {
       <h1 className="festive">{data.name}</h1>
       <p className="muted">Panel organizatora — widzisz kto losował, ale nie kogo wylosował. 🤫</p>
       <CopyField label="🔗 Link do losowania — wyślij rodzinie" value={links.draw(slug)} />
+      <Share url={links.draw(slug)} text={`🎁 ${data.name} — wejdź i wylosuj, komu robisz prezent:`} />
       {key && (
         <>
           <CopyField label="🗝️ Twój link organizatora — zachowaj dla siebie" value={links.organizer(slug, key)} />

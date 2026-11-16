@@ -423,3 +423,15 @@ a.draw-row { color: var(--ink); text-decoration: none; }
 
 /* strona listy: tytuł, wstęp i nagłówki sekcji pośrodku; treść, formularze i wiersze zostają do lewej */
 .list-card > h1, .list-card > h2, .list-card > .intro, .list-card > .notice { text-align: center; }
+
+/* ---------- udostępnianie + QR ---------- */
+.share { margin: -0.25rem 0 1rem; }
+.share-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.qr { margin-top: 0.75rem; padding: 1rem; text-align: center; background: #fff; border: 2px solid #e4d6cc; border-radius: var(--radius); }
+.qr img { display: block; width: min(240px, 100%); height: auto; margin: 0 auto; }
+.qr .hint { margin: 0.5rem 0; }
+
+/* ---------- dziennik admina ---------- */
+.admin-log { margin-top: 1.5rem; }
+.admin-log summary { cursor: pointer; font-weight: 800; font-size: 1.15rem; min-height: 44px; display: flex; align-items: center; }
+.log-details { flex-basis: 100%; color: var(--muted); font-size: 0.95rem; word-break: break-word; }
