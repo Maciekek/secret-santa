@@ -266,11 +266,11 @@ export default function List({ asOrganizer = false }) {
 
   return (
     <>
-      <div className="card">
+      <div className="card list-card">
         <h1 className="festive">{data.name}</h1>
         {organizer ? (
           <>
-            <p className="muted">Panel organizatora — możesz dopisywać potrzebne rzeczy i poprawiać wszystkie wpisy.</p>
+            <p className="muted intro">Panel organizatora — możesz dopisywać potrzebne rzeczy i poprawiać wszystkie wpisy.</p>
             <CopyField label="🔗 Link do listy — wyślij rodzinie" value={links.list(slug)} />
             {orgKey && (
               <>
@@ -281,7 +281,7 @@ export default function List({ asOrganizer = false }) {
           </>
         ) : (
           <>
-            <p>Zobacz, co już ktoś przynosi, i dopisz siebie. Dzięki temu nie będzie trzech makowców i zero barszczu. 🙂</p>
+            <p className="intro">Zobacz, co już ktoś przynosi, i dopisz siebie. Dzięki temu nie będzie trzech makowców i zero barszczu. 🙂</p>
             {savedOrgKey && (
               <div className="notice">
                 <p>🗝️ Ta lista została założona w tej przeglądarce.</p>
@@ -299,7 +299,7 @@ export default function List({ asOrganizer = false }) {
       </div>
 
       {(open.length > 0 || organizer) && (
-        <div className="card">
+        <div className="card list-card">
           <h2>Jeszcze potrzebne 🙏</h2>
           {open.length === 0 ? (
             <p className="muted">Wszystko ma już kogoś. 🎉</p>
@@ -320,7 +320,7 @@ export default function List({ asOrganizer = false }) {
         </div>
       )}
 
-      <div className="card">
+      <div className="card list-card">
         <h2>Kto co przynosi 🍲</h2>
         {people.length === 0 ? (
           <p className="muted">Jeszcze nikt się nie wpisał. Bądź pierwszy!</p>
@@ -339,7 +339,7 @@ export default function List({ asOrganizer = false }) {
         )}
       </div>
 
-      <form className="card" onSubmit={add}>
+      <form className="card list-card" onSubmit={add}>
         <h2>Dopisz do listy ✍️</h2>
         <label className="field">
           <span>Co?</span>
@@ -364,7 +364,7 @@ export default function List({ asOrganizer = false }) {
       </form>
 
       {organizer && (
-        <div className="card">
+        <div className="card list-card">
           <h2>Ustawienia listy</h2>
           <div className="actions">
             <button className="btn ghost small" onClick={load}>Odśwież</button>

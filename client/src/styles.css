@@ -419,3 +419,6 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
 
 .admin-section { margin-top: 1.5rem; }
 a.draw-row { color: var(--ink); text-decoration: none; }
+
+/* strona listy: tytuł, wstęp i nagłówki sekcji pośrodku; treść, formularze i wiersze zostają do lewej */
+.list-card > h1, .list-card > h2, .list-card > .intro, .list-card > .notice { text-align: center; }
