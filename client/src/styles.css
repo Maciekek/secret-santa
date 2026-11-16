@@ -387,13 +387,14 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
   padding: 1rem 1.1rem 1.1rem;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
   transform: rotate(-1.5deg);
+  margin: 2.5rem 0.5rem 0;
 }
 .psst p { margin: 0 0 0.75rem; line-height: 1.45; }
 .psst-title { font-family: 'Lobster', cursive; font-size: 1.5rem; color: var(--red); margin-bottom: 0.25rem !important; }
 .psst-close { position: absolute; top: 0.25rem; right: 0.25rem; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; min-width: 44px; min-height: 44px; border-radius: 50%; }
 .psst-close:hover { color: var(--red); }
 @media (min-width: 1180px) {
-  .psst { position: fixed; left: 1.5rem; bottom: 1.5rem; width: 280px; z-index: 2; }
+  .psst { position: fixed; left: 1.5rem; bottom: 1.5rem; width: 280px; z-index: 2; margin: 0; }
 }
 .ok:empty { display: none; }
 
