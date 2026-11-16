@@ -8,6 +8,7 @@ import { randomToken, safeEqual } from './crypto.js';
 import { metaFor, renderHtml, robotsTxt, sitemapXml } from './seo.js';
 import { HttpError, bearer, cleanText } from './http.js';
 import { registerLists } from './lists.js';
+import { readableSlug } from './slug.js';
 
 const MIN_PEOPLE = 3;
 const MAX_PEOPLE = 100;
@@ -152,7 +153,9 @@ export function createApp({ db, crypto, config }) {
       throw new HttpError(400, 'Imiona muszą być unikalne (dodaj np. inicjał nazwiska)');
     }
 
-    const slug = randomToken(9);
+    // Losowanie: 8 losowych znaków — zgadnięty link pozwalałby losować za kogoś. Stare slugi działają bez zmian.
+    let slug = readableSlug(name, 'losowanie', 8);
+    while (q.draw.get(slug)) slug = readableSlug(name, 'losowanie', 8);
     const organizerKey = randomToken(18);
     transaction(db, () => {
       q.insertDraw.run(slug, name, crypto.hash(organizerKey));

@@ -98,7 +98,7 @@ test('lista: walidacja', () =>
     assert.equal((await call('GET', '/lists/nie-ma')).status, 404);
   }));
 
-test('slug listy: losowy początek + czytelna nazwa', async () => {
+test('slugi list i losowań: losowy początek + czytelna nazwa', async () => {
   const { slugify, readableSlug } = await import('../src/slug.js');
   assert.equal(slugify('Wigilia u Babci 2026!'), 'wigilia-u-babci-2026');
   assert.equal(slugify('Żółć, łąka & Śledzie'), 'zolc-laka-sledzie');
@@ -111,5 +111,9 @@ test('slug listy: losowy początek + czytelna nazwa', async () => {
     const { slug } = (await call('POST', '/lists', { name: 'Wigilia u Kowalskich' })).body;
     assert.match(slug, /^[a-z2-9]{6}-wigilia-u-kowalskich$/);
     assert.equal((await call('GET', `/lists/${slug}`)).status, 200);
+
+    const draw = (await call('POST', '/draws', { name: 'Losowanie Kowalskich', participants: ['A', 'B', 'C'] })).body;
+    assert.match(draw.slug, /^[a-z2-9]{8}-losowanie-kowalskich$/);
+    assert.equal((await call('GET', `/draws/${draw.slug}`)).status, 200);
   });
 });

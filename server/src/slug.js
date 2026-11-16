@@ -18,8 +18,8 @@ export function slugify(text, max = 40) {
 }
 
 /**
- * Czytelny, ale niezgadywalny adres: 6 losowych znaków + nazwa (32^6 ≈ 1 mld kombinacji).
- * Link jest jedynym „hasłem” do listy, więc sama nazwa nie wystarczy.
+ * Czytelny, ale niezgadywalny adres: losowe znaki + nazwa (6 znaków = 32^6 ≈ 1 mld, 8 ≈ 1 bln kombinacji).
+ * Link jest jedynym „hasłem”, więc sama nazwa nie wystarczy.
  */
-export const readableSlug = (name, fallback) =>
-  `${Array.from({ length: 6 }, () => ALPHABET[randomInt(ALPHABET.length)]).join('')}-${slugify(name) || fallback}`;
+export const readableSlug = (name, fallback, randomLength = 6) =>
+  `${Array.from({ length: randomLength }, () => ALPHABET[randomInt(ALPHABET.length)]).join('')}-${slugify(name) || fallback}`;

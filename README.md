@@ -10,7 +10,8 @@
    dokładnie jeden prezent, nikt nie losuje siebie. Pary są zapisane w SQLite **zaszyfrowane**
    (AES-256-GCM, klucz z `APP_SECRET`), więc nie widać ich nawet przy podglądzie bazy.
 3. Organizator dostaje dwa linki:
-   - `/d/<slug>` — do wysłania rodzinie,
+   - `/d/<slug>` — do wysłania rodzinie (slug = 8 losowych znaków + nazwa, np. `/d/k7m2qxa9-wigilia-u-kowalskich`;
+     starsze losowania mają dawne losowe id i działają bez zmian),
    - `/d/<slug>/organizator#<klucz>` — status: kto już losował (bez par).
 4. Uczestnik wchodzi w link, wybiera swoje imię, losuje. Wynik trafia do `localStorage`,
    a imię zostaje zablokowane dla kolejnych prób.
