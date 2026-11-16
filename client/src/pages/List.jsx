@@ -17,6 +17,8 @@ export default function List({ asOrganizer = false }) {
   // Nagłówki organizatora: klucz z linku / z tej przeglądarki, a w ostateczności sesja admina.
   const orgKey = asOrganizer ? hash.slice(1) || myLists.all().find((l) => l.slug === slug)?.key || '' : '';
   const token = asOrganizer ? adminToken.get() : null;
+  // Gość, który sam założył tę listę w tej przeglądarce — podpowiemy mu panel organizatora.
+  const savedOrgKey = asOrganizer ? '' : myLists.all().find((l) => l.slug === slug)?.key || '';
   const orgAuth = orgKey ? { 'x-organizer-key': orgKey } : token ? { authorization: `Bearer ${token}` } : null;
 
   const [data, setData] = useState(null);
@@ -269,9 +271,23 @@ export default function List({ asOrganizer = false }) {
           <>
             <p className="muted">Panel organizatora — możesz dopisywać potrzebne rzeczy i poprawiać wszystkie wpisy.</p>
             <CopyField label="🔗 Link do listy — wyślij rodzinie" value={links.list(slug)} />
+            {orgKey && (
+              <>
+                <CopyField label="🗝️ Twój link organizatora — zachowaj dla siebie" value={links.listOrganizer(slug, orgKey)} />
+                <p className="hint">Nie wysyłaj go rodzinie — kto go ma, może zmieniać i usuwać wszystkie wpisy.</p>
+              </>
+            )}
           </>
         ) : (
-          <p>Zobacz, co już ktoś przynosi, i dopisz siebie. Dzięki temu nie będzie trzech makowców i zero barszczu. 🙂</p>
+          <>
+            <p>Zobacz, co już ktoś przynosi, i dopisz siebie. Dzięki temu nie będzie trzech makowców i zero barszczu. 🙂</p>
+            {savedOrgKey && (
+              <p className="notice">
+                🗝️ Ta lista została założona w tej przeglądarce.{' '}
+                <Link to={`/l/${slug}/organizator#${savedOrgKey}`}>Otwórz panel organizatora</Link>
+              </p>
+            )}
+          </>
         )}
         {asOrganizer && !organizer && <p className="error">Nieprawidłowy link organizatora — widzisz listę jak gość.</p>}
 

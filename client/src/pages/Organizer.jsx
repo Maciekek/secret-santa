@@ -48,7 +48,13 @@ export default function Organizer() {
     <div className="card">
       <h1 className="festive">{data.name}</h1>
       <p className="muted">Panel organizatora — widzisz kto losował, ale nie kogo wylosował. 🤫</p>
-      <CopyField label="🔗 Link do losowania" value={links.draw(slug)} />
+      <CopyField label="🔗 Link do losowania — wyślij rodzinie" value={links.draw(slug)} />
+      {key && (
+        <>
+          <CopyField label="🗝️ Twój link organizatora — zachowaj dla siebie" value={links.organizer(slug, key)} />
+          <p className="hint">Nie wysyłaj go rodzinie — kto go ma, może zmieniać listę osób i losować pary od nowa.</p>
+        </>
+      )}
       <StatusList
         participants={data.participants}
         edit={{ slug, auth: asOrganizer(key), onUpdated: (participants) => setData((d) => ({ ...d, participants })) }}
