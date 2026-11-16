@@ -379,21 +379,26 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
 .item-badge { color: var(--green-dark); font-size: 0.9rem; font-weight: 700; }
 .item-edit { width: 100%; }
 .item-edit .field { margin: 0.5rem 0; }
-/* karteczka „Psst…” — na szerokim ekranie przyklejona w lewym dolnym rogu, na telefonie pod treścią */
+/* karteczka „Psst…” — stonowana, półprzezroczysta na tle strony.
+   Na szerokim ekranie przyklejona w lewym dolnym rogu, na telefonie pod treścią. */
 .psst {
   position: relative;
-  background: #fff8e8;
-  border: 2px dashed var(--gold);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: var(--radius);
   padding: 1rem 1.1rem 1.1rem;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-  transform: rotate(-1.5deg);
+  font-size: 0.95rem;
   margin: 2.5rem 0.5rem 0;
+  backdrop-filter: blur(4px);
 }
 .psst p { margin: 0 0 0.75rem; line-height: 1.45; }
-.psst-title { font-family: 'Lobster', cursive; font-size: 1.5rem; color: var(--red); margin-bottom: 0.25rem !important; }
-.psst-close { position: absolute; top: 0.25rem; right: 0.25rem; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; min-width: 44px; min-height: 44px; border-radius: 50%; }
-.psst-close:hover { color: var(--red); }
+.psst-title { font-family: 'Lobster', cursive; font-size: 1.35rem; margin-bottom: 0.25rem !important; }
+.psst .btn { background: transparent; color: #fff; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85); }
+.psst .btn:hover { background: rgba(255, 255, 255, 0.12); filter: none; }
+.psst :focus-visible { outline-color: #fff; }
+.psst-close { position: absolute; top: 0.25rem; right: 0.25rem; border: 0; background: none; color: rgba(255, 255, 255, 0.85); font: inherit; cursor: pointer; min-width: 44px; min-height: 44px; border-radius: 50%; }
+.psst-close:hover { color: #fff; }
 @media (min-width: 1180px) {
   .psst { position: fixed; left: 1.5rem; bottom: 1.5rem; width: 280px; z-index: 2; margin: 0; }
 }
