@@ -327,9 +327,13 @@ export default function List({ asOrganizer = false }) {
         ) : (
           <ul className="groups">
             {people.map((g, gi) => (
-              <li key={g.who}>
+              <li key={g.who} className="group">
                 <h3 className="group-who">
-                  <span className="avatar small green" aria-hidden="true">{AVATARS[gi % AVATARS.length]}</span> {g.who}
+                  <span className="avatar small green" aria-hidden="true">{AVATARS[gi % AVATARS.length]}</span>
+                  <span className="group-name">{g.who}</span>
+                  <span className="group-count">
+                    {g.items.length} {g.items.length === 1 ? 'rzecz' : 'rzeczy'}
+                  </span>
                 </h3>
                 <ul className="items">{g.items.map((i) => itemRow(i, { inGroup: true }))}</ul>
               </li>
