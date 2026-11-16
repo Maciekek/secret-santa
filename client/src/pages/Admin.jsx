@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, asAdmin } from '../api.js';
 import { adminToken, links } from '../storage.js';
 import CopyField from '../CopyField.jsx';
@@ -47,6 +48,7 @@ function Login({ onLogin }) {
 
 function Dashboard({ token, onUnauthorized }) {
   const [draws, setDraws] = useState(null);
+  const [lists, setLists] = useState(null);
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState('');
 
@@ -55,7 +57,10 @@ function Dashboard({ token, onUnauthorized }) {
     [onUnauthorized],
   );
 
-  const loadList = useCallback(() => api.adminDraws(token).then(setDraws).catch(guard), [token, guard]);
+  const loadList = useCallback(() => {
+    api.adminDraws(token).then(setDraws).catch(guard);
+    api.adminLists(token).then(setLists).catch(guard);
+  }, [token, guard]);
   useEffect(() => { loadList(); }, [loadList]);
 
   if (selected) {
@@ -69,6 +74,7 @@ function Dashboard({ token, onUnauthorized }) {
         <button className="btn ghost small" onClick={onUnauthorized}>Wyloguj</button>
       </div>
       {error && <p className="error">{error}</p>}
+      <h2 className="admin-section">Losowania prezentów</h2>
       {!draws ? (
         <p>Wczytuję…</p>
       ) : draws.length === 0 ? (
@@ -81,6 +87,24 @@ function Dashboard({ token, onUnauthorized }) {
                 <span className="who">{d.drawn === d.total ? '🎉' : '🎄'} {d.name}</span>
                 <span className="when">{d.drawn}/{d.total} wylosowało</span>
               </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h2 className="admin-section">Listy „kto co przynosi”</h2>
+      {!lists ? (
+        <p>Wczytuję…</p>
+      ) : lists.length === 0 ? (
+        <p className="muted">Brak list.</p>
+      ) : (
+        <ul className="draws">
+          {lists.map((l) => (
+            <li key={l.slug}>
+              <Link className="draw-row" to={`/l/${l.slug}/organizator`}>
+                <span className="who">🥟 {l.name}</span>
+                <span className="when">{l.taken}/{l.total} ma kogoś</span>
+              </Link>
             </li>
           ))}
         </ul>

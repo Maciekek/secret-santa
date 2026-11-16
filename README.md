@@ -1,8 +1,9 @@
 # 🎄 Gwiazdka
 
-Świąteczne losowanie prezentów — kto komu robi prezent pod choinkę.
+Świąteczny organizator: losowanie prezentów (kto komu robi prezent pod choinkę) i wspólna lista
+„kto co przynosi”. Na stronie głównej wybiera się jedno albo drugie (`/losowanie`, `/lista`).
 
-## Jak działa
+## Jak działa losowanie
 
 1. Ktoś zakłada losowanie (np. „Wigilia u Kowalskich”) i dodaje uczestników (min. 3).
 2. Serwer od razu losuje pary jako permutację bez punktów stałych — każdy daje i dostaje
@@ -15,6 +16,16 @@
    a imię zostaje zablokowane dla kolejnych prób.
 5. Admin (`/admin`, hasło z `ADMIN_PASSWORD`) widzi wszystkie losowania i status uczestników.
    Pary są ukryte — podgląd tylko przytrzymując 🔒 przy osobie (każdy podgląd logowany).
+
+## Jak działa lista „kto co przynosi”
+
+1. Organizator zakłada listę i opcjonalnie wpisuje, czego potrzeba (barszcz, makowiec…).
+   Dostaje link `/l/<slug>` dla rodziny i `/l/<slug>/organizator#<klucz>` dla siebie.
+2. Gość wpisuje imię (pamiętane w `localStorage`), klika „Ja przyniosę” przy potrzebnej rzeczy
+   albo dopisuje własną pozycję. Wszyscy widzą całą listę, pogrupowaną po osobach.
+3. Uprawnienia: przy dodaniu wpisu przeglądarka dostaje klucz do niego (w bazie tylko HMAC).
+   Zmienić / usunąć / zrezygnować może tylko autor (z tej przeglądarki), organizator i admin.
+   Rzecz wpisaną przez organizatora gość może tylko oddać (wraca do „potrzebnych”), usuwa ją organizator.
 
 ## Stack
 
@@ -52,17 +63,23 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
   `DELETE …/participants/:id` → `{ participants, reset }` — edycja listy. Zmiana imienia nie rusza par.
   Przy dodaniu/usunięciu kto już losował zachowuje parę; pary pozostałych losowane od nowa. `reset` = kto
   już losował, a musi ponownie (jego osoba wypadła z listy).
+- Listy: `POST /api/lists` `{ name, items?: string[] }` → `{ slug, organizerKey }`;
+  `GET /api/lists/:slug` → `{ name, organizer, items }`; `DELETE /api/lists/:slug` (organizator).
+- Wpisy: `POST /api/lists/:slug/items` `{ title, note?, who }` → `{ id, key, items }`
+  (organizator może dodać `{ title, requested: true }` bez osoby); `PATCH …/items/:id` `{ title?, note?, who? }`;
+  `POST …/items/:id/claim` `{ who }` → `{ key, items }` (409 gdy zajęte); `POST …/items/:id/unclaim`;
+  `DELETE …/items/:id`. Autoryzacja: `X-Item-Key` (autor) albo `X-Organizer-Key` / token admina.
 - `POST /api/admin/login` `{ password }` → `{ token }`
 - `GET /api/admin/draws`, `GET /api/admin/draws/:slug`,
   `POST /api/admin/draws/:slug/participants/:id/reveal`, `POST /api/admin/draws/:slug/reshuffle`,
-  `DELETE /api/admin/draws/:slug` — nagłówek `Authorization: Bearer <token>`
+  `DELETE /api/admin/draws/:slug`, `GET /api/admin/lists` — nagłówek `Authorization: Bearer <token>`
 
 ## SEO / Open Graph
 
 - Meta (title, description, canonical, OG, Twitter, JSON-LD) są w `client/index.html` jako znaczniki `__X__`.
   W prod podmienia je serwer per ścieżka (`server/src/seo.js`), w dev plugin w `vite.config.js`.
 - Link do losowania (`/d/<slug>`) ma w podglądzie (Messenger, WhatsApp…) nazwę losowania.
-- `/` — indeksowane; `/d/*`, `/admin` — `noindex` (meta + nagłówek `X-Robots-Tag`).
+- `/`, `/losowanie`, `/lista` — indeksowane; `/d/*`, `/l/*`, `/admin` — `noindex` (meta + nagłówek `X-Robots-Tag`).
 - `robots.txt` i `sitemap.xml` generuje serwer z `PUBLIC_URL`.
 - Obrazek OG: `client/public/og.png` (1200×630), ikona: `client/public/icon-512.png`.
 

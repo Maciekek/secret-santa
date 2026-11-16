@@ -40,6 +40,29 @@ export const myDraws = {
   add: (entry) => write('gwiazdka:moje-losowania', [entry, ...myDraws.all().filter((d) => d.slug !== entry.slug)]),
 };
 
+/** Listy „kto co przynosi” założone w tej przeglądarce: [{ slug, name, key, createdAt }]. */
+export const myLists = {
+  all: () => read('gwiazdka:moje-listy', []),
+  add: (entry) => write('gwiazdka:moje-listy', [entry, ...myLists.all().filter((l) => l.slug !== entry.slug)]),
+  remove: (slug) => write('gwiazdka:moje-listy', myLists.all().filter((l) => l.slug !== slug)),
+};
+
+/** Klucze do wpisów dodanych z tej przeglądarki: { [itemId]: key } — tylko nimi można je zmienić. */
+export const itemKeys = {
+  all: (slug) => read(`gwiazdka:lista:${slug}`, {}),
+  set: (slug, id, key) => write(`gwiazdka:lista:${slug}`, { ...itemKeys.all(slug), [id]: key }),
+  remove: (slug, id) => {
+    const { [id]: _, ...rest } = itemKeys.all(slug);
+    write(`gwiazdka:lista:${slug}`, rest);
+  },
+};
+
+/** Ostatnio wpisane imię — żeby nie wpisywać za każdym razem. */
+export const myName = {
+  get: () => read('gwiazdka:imie', ''),
+  set: (name) => write('gwiazdka:imie', name),
+};
+
 export const adminToken = {
   get: () => {
     try {
@@ -61,4 +84,6 @@ export const adminToken = {
 export const links = {
   draw: (slug) => `${window.location.origin}/d/${slug}`,
   organizer: (slug, key) => `${window.location.origin}/d/${slug}/organizator#${key}`,
+  list: (slug) => `${window.location.origin}/l/${slug}`,
+  listOrganizer: (slug, key) => `${window.location.origin}/l/${slug}/organizator#${key}`,
 };

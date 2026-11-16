@@ -6,20 +6,14 @@ import { randomMatching } from './derangement.js';
 import { transaction } from './db.js';
 import { randomToken, safeEqual } from './crypto.js';
 import { metaFor, renderHtml, robotsTxt, sitemapXml } from './seo.js';
+import { HttpError, bearer, cleanText } from './http.js';
+import { registerLists } from './lists.js';
 
 const MIN_PEOPLE = 3;
 const MAX_PEOPLE = 100;
 const MAX_NAME = 60;
 
-class HttpError extends Error {
-  constructor(status, message) {
-    super(message);
-    this.status = status;
-  }
-}
-
-const cleanName = (value) =>
-  typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, MAX_NAME) : '';
+const cleanName = (value) => cleanText(value, MAX_NAME);
 
 export function createApp({ db, crypto, config }) {
   const app = express();
@@ -113,8 +107,7 @@ export function createApp({ db, crypto, config }) {
   // ---------- autoryzacja ----------
 
   function requireAdmin(req, _res, next) {
-    const token = (req.get('authorization') || '').replace(/^Bearer /, '');
-    if (!crypto.verifyAdminToken(token)) return next(new HttpError(401, 'Zaloguj się ponownie'));
+    if (!crypto.verifyAdminToken(bearer(req))) return next(new HttpError(401, 'Zaloguj się ponownie'));
     next();
   }
 
@@ -122,9 +115,8 @@ export function createApp({ db, crypto, config }) {
   function requireOrganizer(req, _res, next) {
     const draw = getDraw(req.params.slug);
     const key = req.get('x-organizer-key') || '';
-    const token = (req.get('authorization') || '').replace(/^Bearer /, '');
     const isOrganizer = key && safeEqual(crypto.hash(key), draw.organizer_key);
-    if (!isOrganizer && !crypto.verifyAdminToken(token)) {
+    if (!isOrganizer && !crypto.verifyAdminToken(bearer(req))) {
       return next(new HttpError(403, 'Nieprawidłowy link organizatora'));
     }
     req.draw = draw;
@@ -285,6 +277,8 @@ export function createApp({ db, crypto, config }) {
     res.status(204).end();
   });
 
+  registerLists(app, { db, crypto, requireAdmin });
+
   app.use('/api', (_req, _res, next) => next(new HttpError(404, 'Nie znaleziono')));
 
   // ---------- frontend (prod) ----------
@@ -303,7 +297,10 @@ export function createApp({ db, crypto, config }) {
     app.use(express.static(config.staticDir, { maxAge: '1d', index: false }));
 
     app.get('/{*path}', (req, res) => {
-      const meta = metaFor(req.path, (slug) => q.draw.get(slug)?.name ?? null);
+      const meta = metaFor(req.path, {
+        draw: (slug) => q.draw.get(slug)?.name ?? null,
+        list: (slug) => db.prepare('SELECT name FROM lists WHERE slug = ?').get(slug)?.name ?? null,
+      });
       res
         .status(meta.status)
         .set('Cache-Control', 'no-cache')

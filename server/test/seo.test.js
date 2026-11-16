@@ -2,7 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { metaFor, renderHtml } from '../src/seo.js';
 
-const find = (slug) => (slug === 'abc' ? 'Wigilia <Kowalskich>' : null);
+const find = {
+  draw: (slug) => (slug === 'abc' ? 'Wigilia <Kowalskich>' : null),
+  list: (slug) => (slug === 'xyz' ? 'Pierogi u babci' : null),
+};
 
 test('meta: strona główna indeksowalna, losowania i admin nie', () => {
   assert.equal(metaFor('/', find).robots, 'index, follow');
@@ -14,6 +17,18 @@ test('meta: strona główna indeksowalna, losowania i admin nie', () => {
   assert.match(metaFor('/d/abc/organizator', find).title, /^Organizator/);
   assert.equal(metaFor('/d/nope', find).status, 404);
   assert.equal(metaFor('/cokolwiek', find).status, 404);
+});
+
+test('meta: listy „kto co przynosi” i podstrony zakładania', () => {
+  assert.equal(metaFor('/losowanie', find).robots, 'index, follow');
+  assert.equal(metaFor('/lista', find).robots, 'index, follow');
+  const list = metaFor('/l/xyz', find);
+  assert.equal(list.status, 200);
+  assert.match(list.title, /Pierogi u babci/);
+  assert.match(list.robots, /noindex/);
+  assert.match(metaFor('/l/xyz/organizator', find).title, /^Organizator/);
+  assert.equal(metaFor('/l/nope', find).status, 404);
+  assert.equal(metaFor('/l/abc', find).status, 404); // slug losowania to nie lista
 });
 
 test('renderHtml escapuje i ustawia absolutne URL-e', () => {

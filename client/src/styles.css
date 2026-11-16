@@ -328,3 +328,58 @@ legend { font-weight: 800; margin-bottom: 0.4rem; padding: 0; }
   min-width: 3rem;
 }
 .peek.shown { border-color: var(--gold); background: #fff8e8; font-weight: 800; }
+
+/* ---------- strona główna: wybór ---------- */
+.choices { list-style: none; padding: 0; margin: 1.25rem 0 0; display: grid; gap: 0.9rem; }
+.choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 1rem;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.choice:hover, .choice:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+  box-shadow: 0 8px 18px rgba(142, 27, 31, 0.15);
+}
+.choice-icon { grid-row: span 2; font-size: 2.6rem; }
+.choice-title { font-family: 'Lobster', cursive; font-size: 1.6rem; color: var(--red); line-height: 1.2; }
+.choice-desc { color: var(--muted); line-height: 1.4; }
+.back-link { display: inline-block; color: var(--green); font-weight: 800; margin-bottom: 0.5rem; padding: 0.4rem 0; }
+
+/* ---------- lista „kto co przynosi” ---------- */
+.summary { margin: 0.25rem 0 0; }
+.items, .groups { list-style: none; padding: 0; margin: 0.75rem 0 0; display: grid; gap: 0.5rem; }
+.groups { gap: 1.1rem; }
+.group-who { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-size: 1.2rem; }
+.avatar.small { width: 2.4rem; height: 2.4rem; font-size: 1.3rem; }
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  background: #f6eee8;
+}
+.item.mine { background: #e6f3ea; }
+.item-text { display: flex; flex-direction: column; flex: 1 1 12rem; min-width: 0; }
+.item-title { font-weight: 800; font-size: 1.1rem; word-break: break-word; }
+.item-note { color: var(--muted); font-size: 0.95rem; }
+.item-badge { color: var(--green-dark); font-size: 0.9rem; font-weight: 700; }
+.item-edit { width: 100%; }
+.item-edit .field { margin: 0.5rem 0; }
+.foot-link { text-align: center; }
+.foot-link a { color: #fff; font-weight: 800; }
+.ok:empty { display: none; }
+
+.admin-section { margin-top: 1.5rem; }
+a.draw-row { color: var(--ink); text-decoration: none; }

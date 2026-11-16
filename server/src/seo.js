@@ -1,15 +1,29 @@
 export const SITE = {
-  title: 'Gwiazdka — świąteczne losowanie prezentów online',
+  title: 'Gwiazdka — świąteczny organizator: losowanie prezentów i lista, kto co przynosi',
   description:
-    'Darmowe losowanie prezentów na Wigilię dla rodziny i przyjaciół. Załóż losowanie, wyślij link — każdy wylosuje osobę, której zrobi prezent pod choinkę. Bez rejestracji.',
+    'Darmowy świąteczny organizator dla rodziny i przyjaciół: losowanie prezentów na Wigilię i wspólna lista, kto co przynosi. Załóż, wyślij link — bez rejestracji.',
+};
+
+const PAGES = {
+  '/losowanie': {
+    title: 'Losowanie prezentów online — Gwiazdka',
+    description:
+      'Darmowe losowanie prezentów na Wigilię. Załóż losowanie, wyślij link — każdy wylosuje osobę, której zrobi prezent pod choinkę. Nikt nie wylosuje siebie.',
+  },
+  '/lista': {
+    title: 'Kto co przynosi na Wigilię — wspólna lista — Gwiazdka',
+    description:
+      'Wspólna lista na święta: każdy wpisuje, co przyniesie, i widzi, czego jeszcze brakuje. Bez dublowania sałatek i bez rejestracji.',
+  },
 };
 
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-/** Meta dla danej ścieżki SPA. `findDrawName(slug)` → nazwa losowania albo null. */
-export function metaFor(pathname, findDrawName) {
+/** Meta dla danej ścieżki SPA. `find.draw(slug)` / `find.list(slug)` → nazwa albo null. */
+export function metaFor(pathname, find) {
   if (pathname === '/') return { status: 200, ...SITE, robots: 'index, follow' };
+  if (PAGES[pathname]) return { status: 200, ...PAGES[pathname], robots: 'index, follow' };
 
   if (pathname === '/admin') {
     return { status: 200, title: 'Biuro Mikołaja — Gwiazdka', description: SITE.description, robots: 'noindex, nofollow' };
@@ -17,7 +31,7 @@ export function metaFor(pathname, findDrawName) {
 
   const m = pathname.match(/^\/d\/([\w-]+)(\/organizator)?\/?$/);
   if (m) {
-    const name = findDrawName(m[1]);
+    const name = find.draw(m[1]);
     if (!name) return { status: 404, title: 'Nie ma takiego losowania — Gwiazdka', description: SITE.description, robots: 'noindex' };
     return m[2]
       ? { status: 200, title: `Organizator: ${name} — Gwiazdka`, description: 'Panel organizatora losowania prezentów.', robots: 'noindex, nofollow' }
@@ -25,6 +39,20 @@ export function metaFor(pathname, findDrawName) {
           status: 200,
           title: `🎁 ${name} — losowanie prezentów`,
           description: 'Wejdź, wybierz swoje imię i wylosuj osobę, której zrobisz prezent pod choinkę. 🎄',
+          robots: 'noindex, nofollow',
+        };
+  }
+
+  const l = pathname.match(/^\/l\/([\w-]+)(\/organizator)?\/?$/);
+  if (l) {
+    const name = find.list(l[1]);
+    if (!name) return { status: 404, title: 'Nie ma takiej listy — Gwiazdka', description: SITE.description, robots: 'noindex' };
+    return l[2]
+      ? { status: 200, title: `Organizator: ${name} — Gwiazdka`, description: 'Panel organizatora listy „kto co przynosi”.', robots: 'noindex, nofollow' }
+      : {
+          status: 200,
+          title: `🥟 ${name} — kto co przynosi`,
+          description: 'Wpisz, co przyniesiesz na święta, i zobacz, czego jeszcze brakuje. 🎄',
           robots: 'noindex, nofollow',
         };
   }
@@ -51,5 +79,7 @@ export const sitemapXml = (origin) =>
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${origin}/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
+  <url><loc>${origin}/losowanie</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>${origin}/lista</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>
 `;

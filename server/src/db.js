@@ -26,6 +26,27 @@ export function openDb(dbPath) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_participants_draw ON participants(draw_slug);
+
+    -- Lista „kto co przynosi”
+    CREATE TABLE IF NOT EXISTS lists (
+      slug          TEXT PRIMARY KEY,
+      name          TEXT NOT NULL,
+      organizer_key TEXT NOT NULL,          -- HMAC klucza organizatora
+      created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS list_items (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      list_slug  TEXT NOT NULL REFERENCES lists(slug) ON DELETE CASCADE,
+      title      TEXT NOT NULL,             -- co
+      note       TEXT NOT NULL DEFAULT '',  -- np. „na 10 osób”
+      who        TEXT,                      -- kto przynosi; NULL = jeszcze potrzebne
+      owner_key  TEXT,                      -- HMAC klucza osoby, która wpisała / zgłosiła się
+      requested  INTEGER NOT NULL DEFAULT 0,-- 1 = organizator wpisał jako potrzebne
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_list_items_list ON list_items(list_slug);
   `);
   return db;
 }
