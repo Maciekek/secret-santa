@@ -327,7 +327,7 @@ export default function List({ asOrganizer = false }) {
           <input
             value={form.who ?? name}
             onChange={(e) => setForm({ ...form, who: e.target.value })}
-            placeholder="np. Justyna"
+            placeholder="Wpisz swoje imię"
             maxLength={60}
             required
           />
