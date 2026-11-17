@@ -445,6 +445,7 @@ textarea { resize: vertical; line-height: 1.5; }
   display: flex; align-items: center; justify-content: center; gap: 0.4rem; flex-wrap: wrap;
 }
 .tab.active { background: var(--green); border-color: var(--green); color: #fff; }
+@media (max-width: 480px) { .tabs { grid-template-columns: 1fr; } } /* na telefonie jedna pod drugą, bez łamania napisów */
 .tab-badge { background: var(--red); color: #fff; border-radius: 999px; font-size: 0.8rem; padding: 0.1rem 0.5rem; }
 .tab.active .tab-badge { background: #fff; color: var(--red); }
 

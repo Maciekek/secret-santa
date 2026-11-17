@@ -171,7 +171,7 @@ export default function Mailbox({ asOrganizer = false }) {
             <span aria-hidden="true">✍️</span> Napisz list
           </button>
           <button type="button" role="tab" aria-selected={tab === 'inbox'} className={`tab ${tab === 'inbox' ? 'active' : ''}`} onClick={() => showTab('inbox')}>
-            <span aria-hidden="true">📬</span> Skrzynka ({letters.length})
+            <span aria-hidden="true">📬</span> Skrzynka odbiorcza ({letters.length})
             {unread > 0 && <span className="tab-badge">nowe: {unread}</span>}
           </button>
         </div>
