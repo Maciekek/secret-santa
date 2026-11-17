@@ -542,3 +542,25 @@ textarea { resize: vertical; line-height: 1.5; }
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35), inset 0 0 0 5px rgba(0, 0, 0, 0.12), inset 0 0 0 8px rgba(255, 255, 255, 0.08);
   transform: rotate(-12deg);
 }
+
+/* ---------- pergamin do pisania ---------- */
+.parchment-write { padding-bottom: 5.5rem; }
+.parchment-greeting { font-family: 'Caveat', cursive; font-weight: 700; font-size: clamp(1.9rem, 5.5vw, 2.3rem); margin: 0 0 0.5rem; color: #3b2a1a; }
+.parchment-field { display: block; }
+.parchment-label { display: block; font-size: 0.9rem; font-weight: 800; color: #6b4e2e; margin-bottom: 0.2rem; }
+.parchment textarea, .parchment input {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(1.55rem, 4.4vw, 1.8rem);
+  line-height: 1.35;
+  color: #3b2a1a;
+  background: rgba(255, 250, 232, 0.35);
+  border: 2px dashed rgba(110, 65, 20, 0.4);
+  border-radius: 10px;
+}
+.parchment textarea { min-height: 12rem; padding: 0.5rem 0.75rem; }
+.parchment textarea::placeholder, .parchment input::placeholder { color: #8f7454; opacity: 1; }
+.parchment textarea:focus-visible, .parchment input:focus-visible { outline: 3px solid #7a1f1f; outline-offset: 2px; border-color: transparent; background: rgba(255, 250, 232, 0.6); }
+.parchment-counter { text-align: right; font-size: 0.85rem; color: #6b4e2e; margin: 0.25rem 0 1rem; }
+.parchment-signature { margin-left: auto; width: min(100%, 18rem); }
+.parchment-signature input { text-align: right; color: #7a1f1f; font-weight: 700; }
+@media (max-width: 480px) { .parchment { padding-left: 1.1rem; padding-right: 1.1rem; } }

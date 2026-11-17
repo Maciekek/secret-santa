@@ -191,24 +191,27 @@ export default function Mailbox({ asOrganizer = false }) {
             </div>
           </div>
         ) : (
-          <form className="card letter-paper" onSubmit={send}>
-            <h2 className="festive letter-head">Drogi Święty Mikołaju…</h2>
-            <label className="field">
-              <span>Treść listu</span>
-              <textarea
-                value={form.body}
-                onChange={(e) => setForm({ ...form, body: e.target.value })}
-                rows={10}
-                maxLength={MAX_BODY}
-                placeholder={'W tym roku byłem/am bardzo grzeczny/a…\nMarzę o…'}
-                required
-              />
-            </label>
-            <p className="hint counter">{form.body.length} / {MAX_BODY}</p>
-            <label className="field">
-              <span>Podpis — od kogo?</span>
-              <input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} placeholder="np. Zosia, lat 6" maxLength={60} required />
-            </label>
+          <form className="card letter-view" onSubmit={send}>
+            <div className="parchment parchment-write">
+              <h2 className="parchment-greeting">Drogi Święty Mikołaju,</h2>
+              <label className="parchment-field">
+                <span className="parchment-label">Treść listu</span>
+                <textarea
+                  value={form.body}
+                  onChange={(e) => setForm({ ...form, body: e.target.value })}
+                  rows={8}
+                  maxLength={MAX_BODY}
+                  placeholder={'w tym roku byłem/am bardzo grzeczny/a…\nMarzę o…'}
+                  required
+                />
+              </label>
+              <p className="parchment-counter">{form.body.length} / {MAX_BODY}</p>
+              <label className="parchment-field parchment-signature">
+                <span className="parchment-label">Podpis — od kogo?</span>
+                <input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} placeholder="np. Zosia, lat 6" maxLength={60} required />
+              </label>
+              <span className="wax-seal" aria-hidden="true">🎅</span>
+            </div>
             <p className="hint">Listy w skrzynce mogą przeczytać wszyscy, którzy mają link.</p>
             <button className="btn big" disabled={busy || !form.body.trim() || !form.author.trim()}>
               {busy ? 'Renifery już lecą…' : 'Wyślij list ✉️'}
@@ -221,14 +224,19 @@ export default function Mailbox({ asOrganizer = false }) {
           <button className="btn ghost small" onClick={() => setOpenId(null)}>← Wróć do skrzynki</button>
           {editing ? (
             <form onSubmit={saveEdit}>
-              <label className="field">
-                <span>Treść listu</span>
-                <textarea value={editing.body} onChange={(e) => setEditing({ ...editing, body: e.target.value })} rows={10} maxLength={MAX_BODY} required autoFocus />
-              </label>
-              <label className="field">
-                <span>Podpis</span>
-                <input value={editing.author} onChange={(e) => setEditing({ ...editing, author: e.target.value })} maxLength={60} required />
-              </label>
+              <div className="parchment parchment-write">
+                <p className="parchment-greeting">Drogi Święty Mikołaju,</p>
+                <label className="parchment-field">
+                  <span className="parchment-label">Treść listu</span>
+                  <textarea value={editing.body} onChange={(e) => setEditing({ ...editing, body: e.target.value })} rows={8} maxLength={MAX_BODY} required autoFocus />
+                </label>
+                <p className="parchment-counter">{editing.body.length} / {MAX_BODY}</p>
+                <label className="parchment-field parchment-signature">
+                  <span className="parchment-label">Podpis</span>
+                  <input value={editing.author} onChange={(e) => setEditing({ ...editing, author: e.target.value })} maxLength={60} required />
+                </label>
+                <span className="wax-seal" aria-hidden="true">🎅</span>
+              </div>
               <div className="row-actions">
                 <button className="btn small" disabled={busy}>Zapisz</button>
                 <button type="button" className="btn ghost small" onClick={() => setEditing(null)}>Anuluj</button>
@@ -242,6 +250,9 @@ export default function Mailbox({ asOrganizer = false }) {
                   {formatDateTime(opened.createdAt)}
                   {opened.updatedAt && ' · poprawiony'}
                 </p>
+                {!/^\s*(drogi|kochany|mi[lł]y|szanowny|święty|swiety|mikołaj|mikolaj|hej|cześć|czesc)/i.test(opened.body) && (
+                  <p className="parchment-greeting">Drogi Święty Mikołaju,</p>
+                )}
                 <div className="parchment-body">{opened.body}</div>
                 <p className="parchment-sign">{opened.author}</p>
                 <span className="wax-seal" aria-hidden="true">🎅</span>
