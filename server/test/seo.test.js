@@ -33,11 +33,11 @@ test('meta: listy „kto co przynosi” i podstrony zakładania', () => {
 });
 
 test('renderHtml escapuje i ustawia absolutne URL-e', () => {
-  const tpl = '<title>__TITLE__</title><meta content="__URL__"><meta content="__ORIGIN__/og.png">';
-  const html = renderHtml(tpl, { ...metaFor('/d/abc', find), origin: 'https://x.pl', pathname: '/d/abc' });
+  const tpl = '<title>__TITLE__</title><meta content="__URL__"><meta content="__ORIGIN__/og.png?v=__OG_VERSION__">';
+  const html = renderHtml(tpl, { ...metaFor('/d/abc', find), origin: 'https://x.pl', pathname: '/d/abc', ogVersion: 'abc123' });
   assert.ok(html.includes('Wigilia &lt;Kowalskich&gt;'));
   assert.ok(html.includes('https://x.pl/d/abc'));
-  assert.ok(html.includes('https://x.pl/og.png'));
+  assert.ok(html.includes('https://x.pl/og.png?v=abc123'));
 });
 
 test('meta: skrzynki z listami do Mikołaja', () => {

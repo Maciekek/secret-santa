@@ -86,14 +86,15 @@ export function metaFor(pathname, find) {
     return { status: 404, title: 'Nie znaleziono — Gwiazdka', description: SITE.description, robots: 'noindex' };
 }
 
-export function renderHtml(template, { origin, pathname, title, description, robots }) {
+export function renderHtml(template, { origin, pathname, title, description, robots, ogVersion = '1' }) {
   const url = origin + (pathname === '/' ? '/' : pathname);
   return template
     .replaceAll('__TITLE__', escapeHtml(title))
     .replaceAll('__DESCRIPTION__', escapeHtml(description))
     .replaceAll('__ROBOTS__', robots)
     .replaceAll('__URL__', escapeHtml(url))
-    .replaceAll('__ORIGIN__', escapeHtml(origin));
+    .replaceAll('__ORIGIN__', escapeHtml(origin))
+    .replaceAll('__OG_VERSION__', ogVersion);
 }
 
 // /d/ celowo NIE jest zablokowane: boty podglądu linków (Messenger, WhatsApp, X) respektują robots.txt

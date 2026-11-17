@@ -12,7 +12,8 @@ const devSeo = {
       .replaceAll('__DESCRIPTION__', 'Darmowe losowanie prezentów na Wigilię (dev).')
       .replaceAll('__ROBOTS__', 'noindex')
       .replaceAll('__URL__', 'http://localhost:5173/')
-      .replaceAll('__ORIGIN__', 'http://localhost:5173'),
+      .replaceAll('__ORIGIN__', 'http://localhost:5173')
+      .replaceAll('__OG_VERSION__', 'dev'),
 };
 
 export default defineConfig({

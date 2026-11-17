@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'node:path';
 import fs from 'node:fs';
-import { randomInt } from 'node:crypto';
+import { createHash, randomInt } from 'node:crypto';
 import { randomMatching } from './derangement.js';
 import { transaction } from './db.js';
 import { randomToken, safeEqual } from './crypto.js';
@@ -317,6 +317,11 @@ export function createApp({ db, crypto, config }) {
 
   if (config.staticDir && fs.existsSync(config.staticDir)) {
     const template = fs.readFileSync(path.resolve(config.staticDir, 'index.html'), 'utf8');
+    // Wersja obrazka podglądu w adresie (og.png?v=…): po każdej zmianie pliku Cloudflare i Facebook pobiorą go od nowa.
+    const ogFile = path.resolve(config.staticDir, 'og.png');
+    const ogVersion = fs.existsSync(ogFile)
+      ? createHash('sha256').update(fs.readFileSync(ogFile)).digest('hex').slice(0, 10)
+      : '1';
     const origin = (req) => config.publicUrl || `${req.protocol}://${req.get('host')}`;
 
     app.get('/robots.txt', (req, res) => res.type('text/plain').send(robotsTxt(origin(req))));
@@ -339,7 +344,7 @@ export function createApp({ db, crypto, config }) {
         .set('Cache-Control', 'no-cache')
         .set('X-Robots-Tag', meta.robots)
         .type('html')
-        .send(renderHtml(template, { ...meta, origin: origin(req), pathname: req.path }));
+        .send(renderHtml(template, { ...meta, origin: origin(req), pathname: req.path, ogVersion }));
     });
   }
 
