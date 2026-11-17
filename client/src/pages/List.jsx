@@ -28,7 +28,7 @@ export default function List({ asOrganizer = false }) {
   const [keys, setKeys] = useState(() => itemKeys.all(slug));
   // Ostatnio wpisane imię — podpowiadamy je w polach „Kto przyniesie?”.
   const [name, setName] = useState(myName.get);
-  const emptyRow = () => ({ title: '', note: '' });
+  const emptyRow = () => ({ title: '' });
   // Kilka rzeczy naraz — każda osobno (zamiast „sałatka, ciasto, kompot” w jednym polu).
   const [form, setForm] = useState({ rows: [emptyRow()], who: null }); // who: null = ostatnio wpisane imię
   const titleInputs = useRef([]);
@@ -110,7 +110,7 @@ export default function List({ asOrganizer = false }) {
       setError('Wpisz, kto to przyniesie.');
       return;
     }
-    const rows = form.rows.map((r) => ({ title: r.title.trim(), note: r.note.trim() })).filter((r) => r.title);
+    const rows = form.rows.map((r) => ({ title: r.title.trim() })).filter((r) => r.title);
     if (!rows.length) return;
     const dups = rows
       .map((r) => data.items.find((i) => lower(i.title) === lower(r.title)))
@@ -123,7 +123,7 @@ export default function List({ asOrganizer = false }) {
     await run(async () => {
       let last;
       for (const r of rows) {
-        last = await api.addItem(slug, null, { title: r.title, note: r.note, who: bringer });
+        last = await api.addItem(slug, null, { title: r.title, who: bringer });
         rememberKey(last.id, last.key);
         added.push(r.title);
       }
@@ -235,10 +235,12 @@ export default function List({ asOrganizer = false }) {
             <span>Co</span>
             <input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} maxLength={80} required autoFocus />
           </label>
-          <label className="field">
-            <span>Uwagi</span>
-            <input value={editing.note} onChange={(e) => setEditing({ ...editing, note: e.target.value })} maxLength={120} placeholder="np. na 10 osób" />
-          </label>
+          {item.note && (
+            <label className="field">
+              <span>Uwagi</span>
+              <input value={editing.note} onChange={(e) => setEditing({ ...editing, note: e.target.value })} maxLength={120} />
+            </label>
+          )}
           {organizer && (
             <label className="field">
               <span>Kto przynosi</span>
@@ -396,14 +398,6 @@ export default function List({ asOrganizer = false }) {
                     aria-label={`Rzecz ${i + 1}`}
                     maxLength={80}
                     required={i === 0}
-                  />
-                  <input
-                    value={r.note}
-                    onChange={(e) => updateRow(i, { note: e.target.value })}
-                    placeholder="uwagi (nieobowiązkowe)"
-                    aria-label={`Uwagi do rzeczy ${i + 1}`}
-                    maxLength={120}
-                    className="add-row-note"
                   />
                 </div>
                 {form.rows.length > 1 && (
