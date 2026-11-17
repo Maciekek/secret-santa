@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
-import { myDraws, myLists } from '../storage.js';
+import { myDraws, myLists, myMailboxes } from '../storage.js';
 import { useTitle } from '../useTitle.js';
 
 export default function Home() {
   useTitle('Gwiazdka — świąteczny organizator');
   const draws = myDraws.all();
   const lists = myLists.all();
+  const boxes = myMailboxes.all();
 
   return (
     <>
@@ -28,10 +29,17 @@ export default function Home() {
               <span className="choice-desc">Wspólna lista na Wigilię: każdy wpisuje, co przyniesie, i widzi, czego brakuje.</span>
             </Link>
           </li>
+          <li>
+            <Link className="choice" to="/poczta">
+              <span className="choice-icon" aria-hidden="true">✉️</span>
+              <span className="choice-title">Listy do Mikołaja</span>
+              <span className="choice-desc">Wspólna skrzynka: każdy pisze swój list, a potem można je otwierać i czytać.</span>
+            </Link>
+          </li>
         </ul>
       </div>
 
-      {(draws.length > 0 || lists.length > 0) && (
+      {(draws.length > 0 || lists.length > 0 || boxes.length > 0) && (
         <div className="card">
           {draws.length > 0 && (
             <>
@@ -52,6 +60,18 @@ export default function Home() {
                 {lists.map((l) => (
                   <li key={l.slug}>
                     <Link to={`/l/${l.slug}/organizator#${l.key}`}>{l.name}</Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {boxes.length > 0 && (
+            <>
+              <h2>Twoje skrzynki na listy</h2>
+              <ul className="plain">
+                {boxes.map((m) => (
+                  <li key={m.slug}>
+                    <Link to={`/p/${m.slug}/organizator#${m.key}`}>{m.name}</Link>
                   </li>
                 ))}
               </ul>

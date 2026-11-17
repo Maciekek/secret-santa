@@ -29,8 +29,8 @@ export default function Psst() {
       <button type="button" className="psst-close" onClick={close} aria-label="Zamknij podpowiedź">✕</button>
       <p className="psst-title">Psst… 🤫</p>
       <p>
-        Też organizujesz święta? Załóż własne losowanie prezentów albo listę „kto co przynosi” — za darmo i bez
-        rejestracji. Wyślesz rodzinie link i po kłopocie.
+        Też organizujesz święta? Załóż własne losowanie prezentów, listę „kto co przynosi” albo skrzynkę na listy do
+        Mikołaja — za darmo i bez rejestracji. Wyślesz rodzinie link i po kłopocie.
       </p>
       <Link className="btn small" to="/">Zobacz, jak to działa ✨</Link>
     </aside>

@@ -1,7 +1,7 @@
 export const SITE = {
   title: 'Gwiazdka — świąteczny organizator: losowanie prezentów i lista, kto co przynosi',
   description:
-    'Darmowy świąteczny organizator dla rodziny i przyjaciół: losowanie prezentów na Wigilię i wspólna lista, kto co przynosi. Załóż, wyślij link — bez rejestracji.',
+    'Darmowy świąteczny organizator dla rodziny i przyjaciół: losowanie prezentów na Wigilię, wspólna lista, kto co przynosi, i listy do Świętego Mikołaja. Załóż, wyślij link — bez rejestracji.',
 };
 
 const PAGES = {
@@ -10,7 +10,12 @@ const PAGES = {
     description:
       'Darmowe losowanie prezentów na Wigilię. Załóż losowanie, wyślij link — każdy wylosuje osobę, której zrobi prezent pod choinkę. Nikt nie wylosuje siebie.',
   },
-  '/lista': {
+  '/poczta': {
+    title: 'Listy do Świętego Mikołaja online — Gwiazdka',
+    description:
+      'Wspólna skrzynka na listy do Świętego Mikołaja. Każdy pisze swój list i wrzuca go do skrzynki, a reszta może je przeczytać. Bez rejestracji.',
+  },
+    '/lista': {
     title: 'Kto co przynosi na Wigilię — wspólna lista — Gwiazdka',
     description:
       'Wspólna lista na święta: każdy wpisuje, co przyniesie, i widzi, czego jeszcze brakuje. Bez dublowania sałatek i bez rejestracji.',
@@ -57,7 +62,21 @@ export function metaFor(pathname, find) {
         };
   }
 
-  return { status: 404, title: 'Nie znaleziono — Gwiazdka', description: SITE.description, robots: 'noindex' };
+  const p = pathname.match(/^\/p\/([\w-]+)(\/organizator)?\/?$/);
+  if (p) {
+    const name = find.mailbox?.(p[1]);
+    if (!name) return { status: 404, title: 'Nie ma takiej skrzynki — Gwiazdka', description: SITE.description, robots: 'noindex' };
+    return p[2]
+      ? { status: 200, title: `Organizator: ${name} — Gwiazdka`, description: 'Panel organizatora skrzynki na listy do Mikołaja.', robots: 'noindex, nofollow' }
+      : {
+          status: 200,
+          title: `✉️ ${name} — listy do Mikołaja`,
+          description: 'Napisz list do Świętego Mikołaja i wrzuć go do wspólnej skrzynki. 🎅',
+          robots: 'noindex, nofollow',
+        };
+  }
+
+    return { status: 404, title: 'Nie znaleziono — Gwiazdka', description: SITE.description, robots: 'noindex' };
 }
 
 export function renderHtml(template, { origin, pathname, title, description, robots }) {
@@ -81,5 +100,6 @@ export const sitemapXml = (origin) =>
   <url><loc>${origin}/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
   <url><loc>${origin}/losowanie</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>${origin}/lista</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>${origin}/poczta</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>
 `;

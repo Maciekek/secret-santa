@@ -46,6 +46,14 @@ export const api = {
   unclaimItem: (slug, auth, id) => request('POST', `/lists/${slug}/items/${id}/unclaim`, { headers: auth }),
   removeItem: (slug, auth, id) => request('DELETE', `/lists/${slug}/items/${id}`, { headers: auth }),
 
+  // listy do Mikołaja
+  createMailbox: (name) => request('POST', '/mailboxes', { body: { name } }),
+  getMailbox: (slug, auth) => request('GET', `/mailboxes/${slug}`, { headers: auth }),
+  deleteMailbox: (slug, auth) => request('DELETE', `/mailboxes/${slug}`, { headers: auth }),
+  sendLetter: (slug, letter) => request('POST', `/mailboxes/${slug}/letters`, { body: letter }),
+  editLetter: (slug, auth, id, changes) => request('PATCH', `/mailboxes/${slug}/letters/${id}`, { headers: auth, body: changes }),
+  removeLetter: (slug, auth, id) => request('DELETE', `/mailboxes/${slug}/letters/${id}`, { headers: auth }),
+
   login: (password) => request('POST', '/admin/login', { body: { password } }),
   adminDraws: (t) => request('GET', '/admin/draws', admin(t)),
   adminDraw: (t, slug) => request('GET', `/admin/draws/${slug}`, admin(t)),
@@ -54,4 +62,5 @@ export const api = {
   adminDelete: (t, slug) => request('DELETE', `/admin/draws/${slug}`, admin(t)),
   adminLists: (t) => request('GET', '/admin/lists', admin(t)),
   adminLog: (t) => request('GET', '/admin/log', admin(t)),
+  adminMailboxes: (t) => request('GET', '/admin/mailboxes', admin(t)),
 };

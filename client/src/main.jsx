@@ -7,6 +7,8 @@ import Home from './pages/Home.jsx';
 import NewDraw from './pages/NewDraw.jsx';
 import NewList from './pages/NewList.jsx';
 import List from './pages/List.jsx';
+import NewMailbox from './pages/NewMailbox.jsx';
+import Mailbox from './pages/Mailbox.jsx';
 import Draw from './pages/Draw.jsx';
 import Organizer from './pages/Organizer.jsx';
 import Admin from './pages/Admin.jsx';
@@ -37,6 +39,9 @@ createRoot(document.getElementById('root')).render(
           <Route path="/lista" element={<NewList />} />
           <Route path="/l/:slug" element={<List />} />
           <Route path="/l/:slug/organizator" element={<List asOrganizer />} />
+          <Route path="/poczta" element={<NewMailbox />} />
+          <Route path="/p/:slug" element={<Mailbox />} />
+          <Route path="/p/:slug/organizator" element={<Mailbox asOrganizer />} />
           <Route path="/d/:slug" element={<Draw />} />
           <Route path="/d/:slug/organizator" element={<Organizer />} />
           <Route path="/admin" element={<Admin />} />

@@ -8,6 +8,7 @@ import { randomToken, safeEqual } from './crypto.js';
 import { metaFor, renderHtml, robotsTxt, sitemapXml } from './seo.js';
 import { HttpError, bearer, cleanText, rateLimit } from './http.js';
 import { registerLists } from './lists.js';
+import { registerMailboxes } from './mailboxes.js';
 import { readableSlug } from './slug.js';
 
 const MIN_PEOPLE = 3;
@@ -308,6 +309,7 @@ export function createApp({ db, crypto, config }) {
   app.get('/api/admin/log', requireAdmin, (_req, res) => res.json(q.log.all()));
 
   registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin });
+  const mailboxes = registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin });
 
   app.use('/api', (_req, _res, next) => next(new HttpError(404, 'Nie znaleziono')));
 
@@ -330,6 +332,7 @@ export function createApp({ db, crypto, config }) {
       const meta = metaFor(req.path, {
         draw: (slug) => q.draw.get(slug)?.name ?? null,
         list: (slug) => db.prepare('SELECT name FROM lists WHERE slug = ?').get(slug)?.name ?? null,
+        mailbox: mailboxes.findName,
       });
       res
         .status(meta.status)

@@ -48,6 +48,26 @@ export function openDb(dbPath) {
 
     CREATE INDEX IF NOT EXISTS idx_list_items_list ON list_items(list_slug);
 
+    -- Listy do Świętego Mikołaja
+    CREATE TABLE IF NOT EXISTS mailboxes (
+      slug          TEXT PRIMARY KEY,
+      name          TEXT NOT NULL,
+      organizer_key TEXT NOT NULL,          -- HMAC klucza organizatora
+      created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS letters (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      mailbox_slug TEXT NOT NULL REFERENCES mailboxes(slug) ON DELETE CASCADE,
+      author       TEXT NOT NULL,           -- od kogo (wpisane przez autora)
+      body         TEXT NOT NULL,           -- treść listu
+      owner_key    TEXT NOT NULL,           -- HMAC klucza autora
+      created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at   TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_letters_mailbox ON letters(mailbox_slug);
+
     -- Dziennik działań admina (podglądy par, usunięcia) — przeżywa restarty kontenera.
     CREATE TABLE IF NOT EXISTS admin_log (
       id      INTEGER PRIMARY KEY AUTOINCREMENT,

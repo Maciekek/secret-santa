@@ -7,6 +7,10 @@ import { useTitle } from '../useTitle.js';
 import StatusList from '../StatusList.jsx';
 import { formatDate, formatDateTime } from '../date.js';
 
+/** 1 list, 2–4 listy, 5+ listów (12–14 też „listów”). */
+const lettersWord = (n) =>
+  n === 1 ? 'list' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'listy' : 'listów';
+
 export default function Admin() {
   const [token, setToken] = useState(adminToken.get);
   useTitle('Biuro Mikołaja');
@@ -50,6 +54,7 @@ function Login({ onLogin }) {
 function Dashboard({ token, onUnauthorized }) {
   const [draws, setDraws] = useState(null);
   const [lists, setLists] = useState(null);
+  const [boxes, setBoxes] = useState(null);
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState('');
 
@@ -61,6 +66,7 @@ function Dashboard({ token, onUnauthorized }) {
   const loadList = useCallback(() => {
     api.adminDraws(token).then(setDraws).catch(guard);
     api.adminLists(token).then(setLists).catch(guard);
+    api.adminMailboxes(token).then(setBoxes).catch(guard);
   }, [token, guard]);
   useEffect(() => { loadList(); }, [loadList]);
 
@@ -108,6 +114,26 @@ function Dashboard({ token, onUnauthorized }) {
                 <span className="who">🥟 {l.name}</span>
                 <span className="when">
                   {l.taken}/{l.total} ma kogoś · {formatDate(l.createdAt)}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h2 className="admin-section">Listy do Mikołaja</h2>
+      {!boxes ? (
+        <p>Wczytuję…</p>
+      ) : boxes.length === 0 ? (
+        <p className="muted">Brak skrzynek.</p>
+      ) : (
+        <ul className="draws">
+          {boxes.map((m) => (
+            <li key={m.slug}>
+              <Link className="draw-row" to={`/p/${m.slug}/organizator`}>
+                <span className="who">✉️ {m.name}</span>
+                <span className="when">
+                  {m.letters} {lettersWord(m.letters)} · {formatDate(m.createdAt)}
                 </span>
               </Link>
             </li>

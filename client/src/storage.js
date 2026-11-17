@@ -57,6 +57,29 @@ export const itemKeys = {
   },
 };
 
+/** Skrzynki z listami do Mikołaja założone w tej przeglądarce: [{ slug, name, key, createdAt }]. */
+export const myMailboxes = {
+  all: () => read('gwiazdka:moje-skrzynki', []),
+  add: (entry) => write('gwiazdka:moje-skrzynki', [entry, ...myMailboxes.all().filter((m) => m.slug !== entry.slug)]),
+  remove: (slug) => write('gwiazdka:moje-skrzynki', myMailboxes.all().filter((m) => m.slug !== slug)),
+};
+
+/** Klucze do listów wysłanych z tej przeglądarki: { [letterId]: key }. */
+export const letterKeys = {
+  all: (slug) => read(`gwiazdka:listy:${slug}`, {}),
+  set: (slug, id, key) => write(`gwiazdka:listy:${slug}`, { ...letterKeys.all(slug), [id]: key }),
+  remove: (slug, id) => {
+    const { [id]: _, ...rest } = letterKeys.all(slug);
+    write(`gwiazdka:listy:${slug}`, rest);
+  },
+};
+
+/** Listy już otwarte w tej przeglądarce (koperta 💌 → 📭). */
+export const readLetters = {
+  all: (slug) => read(`gwiazdka:przeczytane:${slug}`, []),
+  add: (slug, id) => write(`gwiazdka:przeczytane:${slug}`, [...new Set([...readLetters.all(slug), id])]),
+};
+
 /** Ostatnio wpisane imię — żeby nie wpisywać za każdym razem. */
 export const myName = {
   get: () => read('gwiazdka:imie', ''),
@@ -86,4 +109,6 @@ export const links = {
   organizer: (slug, key) => `${window.location.origin}/d/${slug}/organizator#${key}`,
   list: (slug) => `${window.location.origin}/l/${slug}`,
   listOrganizer: (slug, key) => `${window.location.origin}/l/${slug}/organizator#${key}`,
+  mailbox: (slug) => `${window.location.origin}/p/${slug}`,
+  mailboxOrganizer: (slug, key) => `${window.location.origin}/p/${slug}/organizator#${key}`,
 };

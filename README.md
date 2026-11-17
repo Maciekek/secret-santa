@@ -1,7 +1,8 @@
 # 🎄 Gwiazdka
 
-Świąteczny organizator: losowanie prezentów (kto komu robi prezent pod choinkę) i wspólna lista
-„kto co przynosi”. Na stronie głównej wybiera się jedno albo drugie (`/losowanie`, `/lista`).
+Świąteczny organizator: losowanie prezentów (kto komu robi prezent pod choinkę), wspólna lista
+„kto co przynosi” i skrzynka na listy do Świętego Mikołaja. Na stronie głównej wybiera się tryb
+(`/losowanie`, `/lista`, `/poczta`).
 
 ## Jak działa losowanie
 
@@ -27,6 +28,14 @@
 3. Uprawnienia: przy dodaniu wpisu przeglądarka dostaje klucz do niego (w bazie tylko HMAC).
    Zmienić / usunąć / zrezygnować może tylko autor (z tej przeglądarki), organizator i admin.
    Rzecz wpisaną przez organizatora gość może tylko oddać (wraca do „potrzebnych”), usuwa ją organizator.
+
+## Jak działają listy do Mikołaja
+
+1. Organizator zakłada skrzynkę (`/poczta`) i dostaje link `/p/<slug>` dla rodziny oraz `/p/<slug>/organizator#<klucz>`.
+2. Każdy z linkiem pisze list (treść do 3000 znaków + podpis) i wrzuca go do skrzynki.
+3. Zakładka „📬 Skrzynka” pokazuje koperty; każdy z linkiem może je otworzyć i przeczytać.
+   Przeczytane listy przeglądarka zapamiętuje (koperta 💌 → 📭).
+4. Autor może poprawić / usunąć swój list (klucz w `localStorage`), organizator i admin — każdy.
 
 ## Stack
 
@@ -70,10 +79,13 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
   (organizator może dodać `{ title, requested: true }` bez osoby); `PATCH …/items/:id` `{ title?, note?, who? }`;
   `POST …/items/:id/claim` `{ who }` → `{ key, items }` (409 gdy zajęte); `POST …/items/:id/unclaim`;
   `DELETE …/items/:id`. Autoryzacja: `X-Item-Key` (autor) albo `X-Organizer-Key` / token admina.
+- Skrzynki: `POST /api/mailboxes` `{ name }` → `{ slug, organizerKey }`; `GET /api/mailboxes/:slug` → `{ name, organizer, letters }`;
+  `DELETE /api/mailboxes/:slug` (organizator). Listy: `POST …/letters` `{ author, body }` → `{ id, key, letters }`,
+  `PATCH …/letters/:id`, `DELETE …/letters/:id` — `X-Item-Key` (autor) albo organizator / admin.
 - `POST /api/admin/login` `{ password }` → `{ token }`
 - `GET /api/admin/draws`, `GET /api/admin/draws/:slug`,
   `POST /api/admin/draws/:slug/participants/:id/reveal`, `POST /api/admin/draws/:slug/reshuffle`,
-  `DELETE /api/admin/draws/:slug`, `GET /api/admin/lists`, `GET /api/admin/log` — nagłówek `Authorization: Bearer <token>`
+  `DELETE /api/admin/draws/:slug`, `GET /api/admin/lists`, `GET /api/admin/mailboxes`, `GET /api/admin/log` — nagłówek `Authorization: Bearer <token>`
 
 ## Zabezpieczenia
 
@@ -88,7 +100,7 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
 - Meta (title, description, canonical, OG, Twitter, JSON-LD) są w `client/index.html` jako znaczniki `__X__`.
   W prod podmienia je serwer per ścieżka (`server/src/seo.js`), w dev plugin w `vite.config.js`.
 - Link do losowania (`/d/<slug>`) ma w podglądzie (Messenger, WhatsApp…) nazwę losowania.
-- `/`, `/losowanie`, `/lista` — indeksowane; `/d/*`, `/l/*`, `/admin` — `noindex` (meta + nagłówek `X-Robots-Tag`).
+- `/`, `/losowanie`, `/lista`, `/poczta` — indeksowane; `/d/*`, `/l/*`, `/p/*`, `/admin` — `noindex` (meta + nagłówek `X-Robots-Tag`).
 - `robots.txt` i `sitemap.xml` generuje serwer z `PUBLIC_URL`.
 - Obrazek OG: `client/public/og.png` (1200×630), ikona: `client/public/icon-512.png`.
 
