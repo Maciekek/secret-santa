@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { adminToken, itemKeys, links, myLists, myName } from '../storage.js';
@@ -28,7 +28,10 @@ export default function List({ asOrganizer = false }) {
   const [keys, setKeys] = useState(() => itemKeys.all(slug));
   // Ostatnio wpisane imię — podpowiadamy je w polach „Kto przyniesie?”.
   const [name, setName] = useState(myName.get);
-  const [form, setForm] = useState({ title: '', note: '', who: null }); // who: null = ostatnio wpisane imię
+  const emptyRow = () => ({ title: '', note: '' });
+  // Kilka rzeczy naraz — każda osobno (zamiast „sałatka, ciasto, kompot” w jednym polu).
+  const [form, setForm] = useState({ rows: [emptyRow()], who: null }); // who: null = ostatnio wpisane imię
+  const titleInputs = useRef([]);
   const [claiming, setClaiming] = useState(null); // { id, who } — „Ja przyniosę” rozwinięte w wierszu
   const [needed, setNeeded] = useState('');
   const [editing, setEditing] = useState(null); // { id, title, note, who }
@@ -107,18 +110,44 @@ export default function List({ asOrganizer = false }) {
       setError('Wpisz, kto to przyniesie.');
       return;
     }
-    const title = form.title.trim();
-    const dup = data.items.find((i) => lower(i.title) === lower(title));
-    if (dup && !window.confirm(`„${dup.title}” już jest na liście${dup.who ? ` (przynosi ${dup.who})` : ''}. Dodać mimo to?`)) return;
-    const res = await run(
-      () => api.addItem(slug, null, { title, note: form.note, who: bringer }),
-      `Dopisane: ${bringer} — ${title}. Dziękujemy! 🎄`,
-    );
-    if (res) {
-      rememberKey(res.id, res.key);
+    const rows = form.rows.map((r) => ({ title: r.title.trim(), note: r.note.trim() })).filter((r) => r.title);
+    if (!rows.length) return;
+    const dups = rows
+      .map((r) => data.items.find((i) => lower(i.title) === lower(r.title)))
+      .filter(Boolean)
+      .map((d) => `„${d.title}”${d.who ? ` (przynosi ${d.who})` : ''}`);
+    if (dups.length && !window.confirm(`Już jest na liście: ${dups.join(', ')}. Dodać mimo to?`)) return;
+
+    // Po kolei, żeby każda rzecz dostała swój klucz; przy błędzie w formularzu zostają tylko niedodane.
+    const added = [];
+    await run(async () => {
+      let last;
+      for (const r of rows) {
+        last = await api.addItem(slug, null, { title: r.title, note: r.note, who: bringer });
+        rememberKey(last.id, last.key);
+        added.push(r.title);
+      }
+      return last;
+    }, `Dopisane: ${bringer} — ${rows.map((r) => r.title).join(', ')}. Dziękujemy! 🎄`);
+    if (added.length < rows.length) load(); // część poszła, część nie — pokaż aktualny stan
+    if (added.length) {
       rememberName(bringer);
-      setForm({ title: '', note: '', who: null });
+      const left = rows.slice(added.length);
+      setForm({ rows: left.length ? left : [emptyRow()], who: null });
     }
+  }
+
+  function updateRow(i, changes) {
+    setForm((f) => ({ ...f, rows: f.rows.map((r, j) => (j === i ? { ...r, ...changes } : r)) }));
+  }
+
+  function addRow() {
+    setForm((f) => ({ ...f, rows: [...f.rows, emptyRow()] }));
+    setTimeout(() => titleInputs.current[form.rows.length]?.focus(), 0);
+  }
+
+  function removeRow(i) {
+    setForm((f) => ({ ...f, rows: f.rows.length > 1 ? f.rows.filter((_, j) => j !== i) : [emptyRow()] }));
   }
 
   async function addNeeded(e) {
@@ -346,14 +375,45 @@ export default function List({ asOrganizer = false }) {
 
       <form className="card list-card" onSubmit={add}>
         <h2>Dopisz do listy ✍️</h2>
-        <label className="field">
-          <span>Co?</span>
-          <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="np. Sernik" maxLength={80} required />
-        </label>
-        <label className="field">
-          <span>Uwagi (nieobowiązkowe)</span>
-          <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="np. duża blacha, bez orzechów" maxLength={120} />
-        </label>
+        <fieldset className="add-rows">
+          <legend>Co przyniesiesz?</legend>
+          <p className="hint">Każdą rzecz wpisz osobno — przyciskiem „+” dodasz kolejną.</p>
+          <ol className="add-list">
+            {form.rows.map((r, i) => (
+              <li key={i} className="add-row">
+                <div className="add-row-fields">
+                  <input
+                    ref={(el) => (titleInputs.current[i] = el)}
+                    value={r.title}
+                    onChange={(e) => updateRow(i, { title: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && i === form.rows.length - 1 && r.title.trim()) {
+                        e.preventDefault();
+                        addRow();
+                      }
+                    }}
+                    placeholder={['np. Sernik', 'np. Kompot', 'np. Śledzie'][i % 3]}
+                    aria-label={`Rzecz ${i + 1}`}
+                    maxLength={80}
+                    required={i === 0}
+                  />
+                  <input
+                    value={r.note}
+                    onChange={(e) => updateRow(i, { note: e.target.value })}
+                    placeholder="uwagi (nieobowiązkowe)"
+                    aria-label={`Uwagi do rzeczy ${i + 1}`}
+                    maxLength={120}
+                    className="add-row-note"
+                  />
+                </div>
+                {form.rows.length > 1 && (
+                  <button type="button" className="icon" onClick={() => removeRow(i)} aria-label={`Usuń rzecz ${i + 1}${r.title.trim() ? ` (${r.title.trim()})` : ''}`}>✕</button>
+                )}
+              </li>
+            ))}
+          </ol>
+          <button type="button" className="btn ghost small" onClick={addRow}>+ Dodaj kolejną rzecz</button>
+        </fieldset>
         <label className="field">
           <span>Kto przyniesie?</span>
           <input
@@ -365,7 +425,9 @@ export default function List({ asOrganizer = false }) {
           />
         </label>
         <p className="hint">Możesz wpisać siebie albo kogoś innego — np. że wujek Zbyszek przyniesie śledzie.</p>
-        <button className="btn big" disabled={busy || !form.title.trim() || !bringer}>Dopisz do listy ✨</button>
+        <button className="btn big" disabled={busy || !form.rows.some((r) => r.title.trim()) || !bringer}>
+          {form.rows.filter((r) => r.title.trim()).length > 1 ? 'Dopisz wszystko ✨' : 'Dopisz do listy ✨'}
+        </button>
       </form>
 
       {organizer && (

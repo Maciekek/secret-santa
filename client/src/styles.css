@@ -565,3 +565,12 @@ textarea { resize: vertical; line-height: 1.5; }
 .parchment-signature { margin-left: auto; width: min(100%, 18rem); }
 .parchment-signature input { text-align: right; color: #7a1f1f; font-weight: 700; }
 @media (max-width: 480px) { .parchment { padding-left: 1.1rem; padding-right: 1.1rem; } }
+
+/* lista: kilka rzeczy naraz */
+.add-rows { margin-top: 0.5rem; }
+.add-rows .hint { margin: 0 0 0.6rem; }
+.add-list { list-style: none; padding: 0; margin: 0 0 0.75rem; display: grid; gap: 0.6rem; counter-reset: rzecz; }
+.add-row { display: flex; align-items: flex-start; gap: 0.4rem; counter-increment: rzecz; }
+.add-row::before { content: counter(rzecz) '.'; font-weight: 800; min-width: 1.4rem; padding-top: 0.75rem; color: var(--muted); }
+.add-row-fields { flex: 1; min-width: 0; display: grid; gap: 0.35rem; }
+.add-row-note { font-size: 0.95rem; min-height: 44px; padding-block: 0.5rem; }
