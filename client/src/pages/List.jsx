@@ -411,11 +411,13 @@ export default function List({ asOrganizer = false }) {
               </li>
             ))}
           </ol>
-          <button type="button" className="btn ghost small" onClick={addRow}>+ Dodaj kolejną rzecz</button>
+          <div className="add-more">
+            <button type="button" className="btn ghost small" onClick={addRow}>+ Dodaj kolejną rzecz</button>
+          </div>
         </fieldset>
         <label className="field">
           <span>Uwagi (nieobowiązkowe)</span>
-          <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="np. ciasto bez orzechów, będziemy ok. 18" maxLength={120} />
+          <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="np. będziemy ok. 18" maxLength={120} />
         </label>
         <label className="field">
           <span>Kto przyniesie?</span>

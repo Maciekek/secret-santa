@@ -574,3 +574,4 @@ textarea { resize: vertical; line-height: 1.5; }
 .add-row { display: flex; align-items: center; gap: 0.4rem; counter-increment: rzecz; }
 .add-row::before { content: counter(rzecz) '.'; font-weight: 800; min-width: 1.4rem; color: var(--muted); }
 .add-row-fields { flex: 1; min-width: 0; display: grid; gap: 0.35rem; }
+.add-more { text-align: right; }
