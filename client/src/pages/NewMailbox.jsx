@@ -34,8 +34,8 @@ export default function NewMailbox() {
       <div className="card">
         <h1 className="festive">Skrzynka gotowa! 📮</h1>
         <p>
-          <strong>{created.name}</strong> — wyślij link rodzinie. Każdy napisze swój list do Mikołaja i wrzuci go do
-          skrzynki, a potem będzie można je razem poczytać.
+          <strong>{created.name}</strong> — wyślij link rodzinie. Każdy może napisać swój list do Mikołaja i wrzucić go
+          do skrzynki, a potem będzie można je razem poczytać.
         </p>
         <CopyField label="🔗 Link do skrzynki — wyślij rodzinie" value={links.mailbox(created.slug)} />
         <Share url={links.mailbox(created.slug)} text={`✉️ ${created.name} — napisz list do Świętego Mikołaja:`} />
@@ -54,8 +54,8 @@ export default function NewMailbox() {
       <Link className="back-link" to="/">← Wróć</Link>
       <h1 className="festive">Listy do Mikołaja ✉️</h1>
       <p>
-        Załóż wspólną skrzynkę na listy do Świętego Mikołaja. Każdy — dzieci, dziadkowie, ciocie — napisze swój list,
-        a w skrzynce będzie można je otwierać i czytać.
+        Załóż wspólną skrzynkę na listy do Świętego Mikołaja. Każdy może napisać swój list, a w skrzynce będzie można je
+        otwierać i czytać.
       </p>
       <form onSubmit={submit}>
         <label className="field">
