@@ -217,7 +217,7 @@ export default function Mailbox({ asOrganizer = false }) {
         ))}
 
       {tab === 'inbox' && opened && (
-        <article className="card letter-paper">
+        <article className="card letter-view">
           <button className="btn ghost small" onClick={() => setOpenId(null)}>← Wróć do skrzynki</button>
           {editing ? (
             <form onSubmit={saveEdit}>
@@ -236,13 +236,16 @@ export default function Mailbox({ asOrganizer = false }) {
             </form>
           ) : (
             <>
-              <h2 className="festive letter-head">List od: {opened.author}</h2>
-              <p className="muted letter-date">
-                {formatDateTime(opened.createdAt)}
-                {opened.updatedAt && ' · poprawiony'}
-              </p>
-              <div className="letter-body">{opened.body}</div>
-              <p className="letter-sign">— {opened.author}</p>
+              <h2 className="sr-only">List od: {opened.author}</h2>
+              <div className="parchment">
+                <p className="parchment-date">
+                  {formatDateTime(opened.createdAt)}
+                  {opened.updatedAt && ' · poprawiony'}
+                </p>
+                <div className="parchment-body">{opened.body}</div>
+                <p className="parchment-sign">{opened.author}</p>
+                <span className="wax-seal" aria-hidden="true">🎅</span>
+              </div>
               {canEdit(opened) && (
                 <div className="actions">
                   <button className="btn ghost small" disabled={busy} onClick={() => setEditing({ author: opened.author, body: opened.body })}>
