@@ -30,7 +30,8 @@ export default function List({ asOrganizer = false }) {
   const [name, setName] = useState(myName.get);
   const emptyRow = () => ({ title: '' });
   // Kilka rzeczy naraz — każda osobno (zamiast „sałatka, ciasto, kompot” w jednym polu).
-  const [form, setForm] = useState({ rows: [emptyRow()], who: null }); // who: null = ostatnio wpisane imię
+  // note: jedna uwaga do całego zgłoszenia (zapisujemy ją przy pierwszej rzeczy, pokazujemy przy osobie)
+  const [form, setForm] = useState({ rows: [emptyRow()], note: '', who: null }); // who: null = ostatnio wpisane imię
   const titleInputs = useRef([]);
   const [claiming, setClaiming] = useState(null); // { id, who } — „Ja przyniosę” rozwinięte w wierszu
   const [needed, setNeeded] = useState('');
@@ -122,8 +123,9 @@ export default function List({ asOrganizer = false }) {
     const added = [];
     await run(async () => {
       let last;
-      for (const r of rows) {
-        last = await api.addItem(slug, null, { title: r.title, who: bringer });
+      for (const [n, r] of rows.entries()) {
+        const note = n === 0 && added.length === 0 ? form.note.trim() : '';
+        last = await api.addItem(slug, null, { title: r.title, note, who: bringer });
         rememberKey(last.id, last.key);
         added.push(r.title);
       }
@@ -133,7 +135,7 @@ export default function List({ asOrganizer = false }) {
     if (added.length) {
       rememberName(bringer);
       const left = rows.slice(added.length);
-      setForm({ rows: left.length ? left : [emptyRow()], who: null });
+      setForm({ rows: left.length ? left : [emptyRow()], note: '', who: null });
     }
   }
 
@@ -263,7 +265,7 @@ export default function List({ asOrganizer = false }) {
       <li key={item.id} className={`item ${keys[item.id] ? 'mine' : ''}`}>
         <span className="item-text">
           <span className="item-title">{item.title}</span>
-          {item.note && <span className="item-note">{item.note}</span>}
+          {item.note && !inGroup && <span className="item-note">{item.note}</span>}
           {keys[item.id] && inGroup && <span className="item-badge">dodane przez Ciebie</span>}
           {organizer && <span className="item-date">dodane {formatDateTime(item.createdAt)}</span>}
         </span>
@@ -368,6 +370,9 @@ export default function List({ asOrganizer = false }) {
                   <span className="avatar small green" aria-hidden="true">{AVATARS[gi % AVATARS.length]}</span>
                   <span className="group-name">{g.who}</span>
                 </h3>
+                {[...new Set(g.items.map((i) => i.note).filter(Boolean))].map((note) => (
+                  <p key={note} className="group-note"><span aria-hidden="true">💬</span> {note}</p>
+                ))}
                 <ul className="items">{g.items.map((i) => itemRow(i, { inGroup: true }))}</ul>
               </li>
             ))}
@@ -408,6 +413,10 @@ export default function List({ asOrganizer = false }) {
           </ol>
           <button type="button" className="btn ghost small" onClick={addRow}>+ Dodaj kolejną rzecz</button>
         </fieldset>
+        <label className="field">
+          <span>Uwagi (nieobowiązkowe)</span>
+          <input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="np. ciasto bez orzechów, będziemy ok. 18" maxLength={120} />
+        </label>
         <label className="field">
           <span>Kto przyniesie?</span>
           <input
