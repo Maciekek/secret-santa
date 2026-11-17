@@ -41,7 +41,11 @@ createRoot(document.getElementById('root')).render(
           <Route path="/l/:slug/organizator" element={<List asOrganizer />} />
           <Route path="/poczta" element={<NewMailbox />} />
           <Route path="/p/:slug" element={<Mailbox />} />
+          <Route path="/p/:slug/skrzynka" element={<Mailbox view="inbox" />} />
+          <Route path="/p/:slug/skrzynka/:letterId" element={<Mailbox view="inbox" />} />
           <Route path="/p/:slug/organizator" element={<Mailbox asOrganizer />} />
+          <Route path="/p/:slug/organizator/skrzynka" element={<Mailbox asOrganizer view="inbox" />} />
+          <Route path="/p/:slug/organizator/skrzynka/:letterId" element={<Mailbox asOrganizer view="inbox" />} />
           <Route path="/d/:slug" element={<Draw />} />
           <Route path="/d/:slug/organizator" element={<Organizer />} />
           <Route path="/admin" element={<Admin />} />

@@ -62,12 +62,19 @@ export function metaFor(pathname, find) {
         };
   }
 
-  const p = pathname.match(/^\/p\/([\w-]+)(\/organizator)?\/?$/);
+  // /p/:slug[/organizator][/skrzynka[/:letterId]]
+  const p = pathname.match(/^\/p\/([\w-]+)(\/organizator)?(\/skrzynka(?:\/\d+)?)?\/?$/);
   if (p) {
     const name = find.mailbox?.(p[1]);
     if (!name) return { status: 404, title: 'Nie ma takiej skrzynki — Gwiazdka', description: SITE.description, robots: 'noindex' };
-    return p[2]
-      ? { status: 200, title: `Organizator: ${name} — Gwiazdka`, description: 'Panel organizatora skrzynki na listy do Mikołaja.', robots: 'noindex, nofollow' }
+    if (p[2]) return { status: 200, title: `Organizator: ${name} — Gwiazdka`, description: 'Panel organizatora skrzynki na listy do Mikołaja.', robots: 'noindex, nofollow' };
+    return p[3]
+      ? {
+          status: 200,
+          title: `📬 ${name} — skrzynka odbiorcza`,
+          description: 'Zajrzyj do skrzynki i przeczytaj listy do Świętego Mikołaja. 🎅',
+          robots: 'noindex, nofollow',
+        }
       : {
           status: 200,
           title: `✉️ ${name} — listy do Mikołaja`,

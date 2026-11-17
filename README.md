@@ -33,7 +33,8 @@
 
 1. Organizator zakłada skrzynkę (`/poczta`) i dostaje link `/p/<slug>` dla rodziny oraz `/p/<slug>/organizator#<klucz>`.
 2. Każdy z linkiem pisze list (treść do 3000 znaków + podpis) i wrzuca go do skrzynki.
-3. Zakładka „📬 Skrzynka” pokazuje koperty; każdy z linkiem może je otworzyć i przeczytać.
+3. „📬 Skrzynka odbiorcza” ma własny adres `/p/<slug>/skrzynka` (a otwarty list `/p/<slug>/skrzynka/<id>`) —
+   można go wysłać osobno. Każdy z linkiem może otworzyć i przeczytać koperty.
    Przeczytane listy przeglądarka zapamiętuje (koperta 💌 → 📭).
 4. Autor może poprawić / usunąć swój list (klucz w `localStorage`), organizator i admin — każdy.
 

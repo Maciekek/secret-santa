@@ -48,4 +48,8 @@ test('meta: skrzynki z listami do Mikołaja', () => {
   assert.match(box.robots, /noindex/);
   assert.match(metaFor('/p/m1/organizator', find).title, /^Organizator/);
   assert.equal(metaFor('/p/nope', find).status, 404);
+  assert.match(metaFor('/p/m1/skrzynka', find).title, /skrzynka odbiorcza/);
+  assert.equal(metaFor('/p/m1/skrzynka/12', find).status, 200);
+  assert.match(metaFor('/p/m1/organizator/skrzynka/12', find).title, /^Organizator/);
+  assert.equal(metaFor('/p/m1/skrzynka/abc', find).status, 404);
 });

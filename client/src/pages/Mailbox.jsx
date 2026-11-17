@@ -10,9 +10,13 @@ import { formatDateTime } from '../date.js';
 
 const MAX_BODY = 3000;
 
-/** Skrzynka z listami do Świętego Mikołaja. `asOrganizer` — wejście z linku organizatora (albo admin). */
-export default function Mailbox({ asOrganizer = false }) {
-  const { slug } = useParams();
+/**
+ * Skrzynka z listami do Świętego Mikołaja. Widok z adresu:
+ * `/p/:slug` — pisanie, `/p/:slug/skrzynka` — skrzynka odbiorcza, `/p/:slug/skrzynka/:letterId` — otwarty list.
+ * `asOrganizer` — to samo pod `/p/:slug/organizator/…` (link organizatora albo admin).
+ */
+export default function Mailbox({ asOrganizer = false, view = 'write' }) {
+  const { slug, letterId } = useParams();
   const { hash } = useLocation();
   const navigate = useNavigate();
 
@@ -24,15 +28,16 @@ export default function Mailbox({ asOrganizer = false }) {
   const [data, setData] = useState(null);
   const [keys, setKeys] = useState(() => letterKeys.all(slug));
   const [read, setRead] = useState(() => readLetters.all(slug));
-  const [tab, setTab] = useState('write'); // 'write' | 'inbox'
-  const [openId, setOpenId] = useState(null);
+  const base = asOrganizer ? `/p/${slug}/organizator` : `/p/${slug}`;
+  const tab = view; // 'write' | 'inbox'
+  const openId = letterId ? Number(letterId) : null;
   const [form, setForm] = useState(() => ({ author: myName.get(), body: '' }));
   const [sent, setSent] = useState(false);
   const [editing, setEditing] = useState(null); // { author, body }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState('');
-  useTitle(data ? `✉️ ${data.name}` : null);
+  useTitle(data ? (view === 'inbox' ? `📬 ${data.name} — skrzynka odbiorcza` : `✉️ ${data.name}`) : null);
 
   const organizer = Boolean(data?.organizer);
 
@@ -89,12 +94,24 @@ export default function Mailbox({ asOrganizer = false }) {
   }
 
   function open(letter) {
-    setOpenId(letter.id);
     setEditing(null);
-    readLetters.add(slug, letter.id);
-    setRead(readLetters.all(slug));
+    navigate(`${base}/skrzynka/${letter.id}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  // Otwarty list (także z linku) = przeczytany w tej przeglądarce.
+  useEffect(() => {
+    if (!openId || !data?.letters.some((l) => l.id === openId)) return;
+    readLetters.add(slug, openId);
+    setRead(readLetters.all(slug));
+  }, [openId, data, slug]);
+
+  // Zmiana widoku z nawigacji: czyścimy komunikaty i tryb edycji.
+  useEffect(() => {
+    setSent(false);
+    setError('');
+    setEditing(null);
+  }, [view, openId]);
 
   async function saveEdit(e) {
     e.preventDefault();
@@ -107,7 +124,7 @@ export default function Mailbox({ asOrganizer = false }) {
     if (await run(() => api.removeLetter(slug, authFor(letter), letter.id))) {
       letterKeys.remove(slug, letter.id);
       setKeys(letterKeys.all(slug));
-      setOpenId(null);
+      navigate(`${base}/skrzynka`);
     }
   }
 
@@ -117,13 +134,6 @@ export default function Mailbox({ asOrganizer = false }) {
       myMailboxes.remove(slug);
       navigate('/');
     }
-  }
-
-  function showTab(next) {
-    setTab(next);
-    setOpenId(null);
-    setSent(false);
-    setError('');
   }
 
   if (loadError && !data) return <div className="card center"><p className="error">{loadError}</p></div>;
@@ -144,6 +154,7 @@ export default function Mailbox({ asOrganizer = false }) {
             <p className="muted intro">Skrzynka założona {formatDateTime(data.createdAt)}</p>
             <CopyField label="🔗 Link do skrzynki — wyślij rodzinie" value={links.mailbox(slug)} />
             <Share url={links.mailbox(slug)} text={`✉️ ${data.name} — napisz list do Świętego Mikołaja:`} />
+            <CopyField label="📬 Link prosto do skrzynki odbiorczej — żeby poczytać listy" value={links.mailboxInbox(slug)} />
             {orgKey && (
               <>
                 <CopyField label="🗝️ Twój link organizatora — zachowaj dla siebie" value={links.mailboxOrganizer(slug, orgKey)} />
@@ -166,15 +177,15 @@ export default function Mailbox({ asOrganizer = false }) {
         )}
         {asOrganizer && !organizer && <p className="error">Nieprawidłowy link organizatora — widzisz skrzynkę jak gość.</p>}
 
-        <div className="tabs" role="tablist" aria-label="Skrzynka">
-          <button type="button" role="tab" aria-selected={tab === 'write'} className={`tab ${tab === 'write' ? 'active' : ''}`} onClick={() => showTab('write')}>
+        <nav className="tabs" aria-label="Skrzynka">
+          <Link to={base} className={`tab ${tab === 'write' ? 'active' : ''}`} aria-current={tab === 'write' ? 'page' : undefined}>
             <span aria-hidden="true">✍️</span> Napisz list
-          </button>
-          <button type="button" role="tab" aria-selected={tab === 'inbox'} className={`tab ${tab === 'inbox' ? 'active' : ''}`} onClick={() => showTab('inbox')}>
+          </Link>
+          <Link to={`${base}/skrzynka`} className={`tab ${tab === 'inbox' ? 'active' : ''}`} aria-current={tab === 'inbox' && !openId ? 'page' : undefined}>
             <span aria-hidden="true">📬</span> Skrzynka odbiorcza ({letters.length})
             {unread > 0 && <span className="tab-badge">nowe: {unread}</span>}
-          </button>
-        </div>
+          </Link>
+        </nav>
       </div>
 
       {error && <div className="card"><p className="error" role="alert">{error}</p></div>}
@@ -186,7 +197,7 @@ export default function Mailbox({ asOrganizer = false }) {
             <h2 className="festive">List poleciał do Laponii!</h2>
             <p role="status">Mikołaj już go czyta. Twój list jest też w skrzynce — możesz go jeszcze poprawić.</p>
             <div className="actions centered">
-              <button className="btn" onClick={() => showTab('inbox')}>📬 Zobacz skrzynkę</button>
+              <Link className="btn" to={`${base}/skrzynka`}>📬 Zobacz skrzynkę</Link>
               <button className="btn ghost" onClick={() => setSent(false)}>Napisz kolejny list</button>
             </div>
           </div>
@@ -221,7 +232,7 @@ export default function Mailbox({ asOrganizer = false }) {
 
       {tab === 'inbox' && opened && (
         <article className="card letter-view">
-          <button className="btn ghost small" onClick={() => setOpenId(null)}>← Wróć do skrzynki</button>
+          <Link className="btn ghost small" to={`${base}/skrzynka`}>← Wróć do skrzynki</Link>
           {editing ? (
             <form onSubmit={saveEdit}>
               <div className="parchment parchment-write">
@@ -270,7 +281,14 @@ export default function Mailbox({ asOrganizer = false }) {
         </article>
       )}
 
-      {tab === 'inbox' && !opened && (
+      {tab === 'inbox' && openId && !opened && (
+        <div className="card center">
+          <p>Tego listu już nie ma w skrzynce. 📭</p>
+          <Link className="btn" to={`${base}/skrzynka`}>Zobacz skrzynkę odbiorczą</Link>
+        </div>
+      )}
+
+      {tab === 'inbox' && !openId && (
         <div className="card list-card">
           <h2>Skrzynka odbiorcza 📬</h2>
           {letters.length === 0 ? (

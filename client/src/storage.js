@@ -110,5 +110,6 @@ export const links = {
   list: (slug) => `${window.location.origin}/l/${slug}`,
   listOrganizer: (slug, key) => `${window.location.origin}/l/${slug}/organizator#${key}`,
   mailbox: (slug) => `${window.location.origin}/p/${slug}`,
+  mailboxInbox: (slug) => `${window.location.origin}/p/${slug}/skrzynka`,
   mailboxOrganizer: (slug, key) => `${window.location.origin}/p/${slug}/organizator#${key}`,
 };
