@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { myDraws, myResults, sameParticipant } from '../storage.js';
+import { myDraws, myName, myResults, sameParticipant } from '../storage.js';
 import Psst from '../Psst.jsx';
+import { useVisit } from '../visit.js';
 import { useTitle } from '../useTitle.js';
 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -18,6 +19,8 @@ export default function Draw() {
   const [rolling, setRolling] = useState(null);
   const timer = useRef();
   useTitle(draw ? `🎁 ${draw.name}` : null);
+  // kto wchodzi: osoby, które już losowały w tej przeglądarce, albo zapamiętane imię
+  useVisit('losowanie', slug, { actor: myResults.all(slug).map((r) => r.name).join(', ') || myName.get() || undefined });
 
   function load() {
     return api

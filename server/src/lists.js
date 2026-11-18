@@ -2,6 +2,7 @@ import { transaction } from './db.js';
 import { randomToken, safeEqual } from './crypto.js';
 import { HttpError, bearer, cleanText } from './http.js';
 import { readableSlug } from './slug.js';
+import { headerActor } from './activity.js';
 
 /*
  * Lista „kto co przynosi” (wspólna zrzutka na Wigilię).
@@ -14,7 +15,17 @@ import { readableSlug } from './slug.js';
 const MAX_ITEMS = 200;
 const LEN = { name: 60, title: 80, note: 120, who: 60 };
 
-export function registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin }) {
+export function registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity }) {
+  /** Wpis do dziennika aktywności; działania organizatora oznaczamy. */
+  const act = (req, kind, details, actor) =>
+    activity.log(req, kind, {
+      area: 'lista',
+      slug: req.list.slug,
+      name: req.list.name,
+      actor,
+      details: (req.organizer ? '[organizator] ' : '') + details,
+    });
+
   const q = {
     list: db.prepare('SELECT slug, name, organizer_key, created_at FROM lists WHERE slug = ?'),
     items: db.prepare(
@@ -139,6 +150,9 @@ export function registerLists(app, { db, crypto, requireAdmin, createLimiter, lo
 
     const key = who ? randomToken(12) : null;
     const { lastInsertRowid } = q.insertItem.run(list.slug, title, note, who, key && crypto.hash(key), requested ? 1 : 0);
+    req.list = list;
+    req.organizer = isOrganizer(req, list);
+    act(req, requested ? 'dodanie potrzebnej rzeczy' : 'dopisanie', `${title}${who ? ` — przynosi ${who}` : ''}${note ? ` (uwagi: ${note})` : ''}`, headerActor(req) || who);
     res.status(201).json({ id: Number(lastInsertRowid), key, items: view(list.slug) });
   });
 
@@ -154,6 +168,7 @@ export function registerLists(app, { db, crypto, requireAdmin, createLimiter, lo
     if (!who && !item.requested) throw new HttpError(400, 'Podaj imię');
     q.updateItem.run(title, note, who, item.id);
     if (!who) q.unclaim.run(item.id);
+    act(req, 'zmiana wpisu', `${item.title} (${item.who ?? 'potrzebne'}) → ${title} (${who ?? 'potrzebne'})`);
     res.json({ items: view(req.list.slug) });
   });
 
@@ -165,6 +180,7 @@ export function registerLists(app, { db, crypto, requireAdmin, createLimiter, lo
     if (q.claim.run(who, crypto.hash(key), req.item.id).changes === 0) {
       throw new HttpError(409, `Ktoś Cię uprzedził — ${req.item.who || 'ktoś'} już to przynosi 🙂`);
     }
+    act(req, 'zgłoszenie „Ja przyniosę”', `${req.item.title} — przynosi ${who}`, headerActor(req) || who);
     res.json({ key, items: view(req.list.slug) });
   });
 
@@ -173,6 +189,7 @@ export function registerLists(app, { db, crypto, requireAdmin, createLimiter, lo
     if (!req.owner && !req.organizer) throw new HttpError(403, 'To nie Twój wpis');
     if (!req.item.requested) throw new HttpError(400, 'Ten wpis można tylko usunąć');
     q.unclaim.run(req.item.id);
+    act(req, 'rezygnacja', `${req.item.title} — było: ${req.item.who}`);
     res.json({ items: view(req.list.slug) });
   });
 
@@ -181,6 +198,7 @@ export function registerLists(app, { db, crypto, requireAdmin, createLimiter, lo
     const { item } = req;
     if (!req.organizer && !(req.owner && !item.requested)) throw new HttpError(403, 'To nie Twój wpis');
     q.deleteItem.run(item.id);
+    act(req, 'usunięcie wpisu', `${item.title} (${item.who ?? 'potrzebne'})`);
     res.json({ items: view(req.list.slug) });
   });
 

@@ -9,6 +9,7 @@ import { metaFor, renderHtml, robotsTxt, sitemapXml } from './seo.js';
 import { HttpError, bearer, cleanText, rateLimit } from './http.js';
 import { registerLists } from './lists.js';
 import { registerMailboxes } from './mailboxes.js';
+import { clientIp, createActivity } from './activity.js';
 import { readableSlug } from './slug.js';
 
 const MIN_PEOPLE = 3;
@@ -22,6 +23,18 @@ export function createApp({ db, crypto, config }) {
   app.set('trust proxy', true);
   app.disable('x-powered-by');
   app.use(express.json({ limit: '32kb' }));
+
+  // Log systemowy (docker logs): każda zmiana przez API — metoda, ścieżka, status, czas, IP.
+  app.use('/api', (req, res, next) => {
+    if (req.method === 'GET') return next();
+    const start = Date.now();
+    res.on('finish', () => {
+      console.log(`[api] ${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - start}ms ip=${clientIp(req)}`);
+    });
+    next();
+  });
+
+  const activity = createActivity(db);
 
   // ---------- dostęp do danych ----------
 
@@ -211,6 +224,8 @@ export function createApp({ db, crypto, config }) {
       const target = q.participant.get(draw.slug, Number(crypto.decrypt(me.target_enc)));
       return { id: me.id, name: me.name, target: target.name, targetId: target.id };
     });
+    // bez wyniku — dziennik nie może zdradzać par
+    activity.log(req, 'losowanie', { area: 'losowanie', slug: draw.slug, name: draw.name, actor: result.name });
     res.json(result);
   });
 
@@ -220,8 +235,13 @@ export function createApp({ db, crypto, config }) {
     res.json({ name: req.draw.name, createdAt: req.draw.created_at, participants: statusView(req.draw.slug) });
   });
 
+  /** Działania organizatora losowania w dzienniku aktywności. */
+  const orgAct = (req, kind, details = '') =>
+    activity.log(req, kind, { area: 'losowanie', slug: req.draw.slug, name: req.draw.name, details: `[${isAdmin(req) ? 'admin' : 'organizator'}] ${details}` });
+
   app.post('/api/draws/:slug/manage/reshuffle', requireOrganizer, (req, res) => {
     transaction(db, () => shuffle(req.draw.slug));
+    orgAct(req, 'losowanie par od nowa');
     res.json({ participants: statusView(req.draw.slug) });
   });
 
@@ -237,6 +257,7 @@ export function createApp({ db, crypto, config }) {
       q.insertParticipant.run(slug, name);
       return assign(slug);
     });
+    orgAct(req, 'dodanie osoby', `${name}${reset.length ? ` — do ponownego losowania: ${reset.join(', ')}` : ''}`);
     res.status(201).json({ participants: statusView(slug), reset });
   });
 
@@ -246,6 +267,7 @@ export function createApp({ db, crypto, config }) {
     if (!q.participant.get(slug, id)) throw new HttpError(404, 'Nie ma takiej osoby');
     const name = cleanName(req.body?.name);
     validateName(slug, name, id);
+    orgAct(req, 'zmiana imienia', `${q.participant.get(slug, id).name} → ${name}`);
     q.renameParticipant.run(name, slug, id); // pary trzymamy po id — zmiana imienia ich nie rusza
     res.json({ participants: statusView(slug), reset: [] });
   });
@@ -257,10 +279,12 @@ export function createApp({ db, crypto, config }) {
     if (q.participants.all(slug).length <= MIN_PEOPLE) {
       throw new HttpError(400, `Losowanie musi mieć co najmniej ${MIN_PEOPLE} osoby`);
     }
+    const removed = q.participant.get(slug, id).name;
     const reset = transaction(db, () => {
       q.deleteParticipant.run(slug, id);
       return assign(slug);
     });
+    orgAct(req, 'usunięcie osoby', `${removed}${reset.length ? ` — do ponownego losowania: ${reset.join(', ')}` : ''}`);
     res.json({ participants: statusView(slug), reset });
   });
 
@@ -307,9 +331,35 @@ export function createApp({ db, crypto, config }) {
   });
 
   app.get('/api/admin/log', requireAdmin, (_req, res) => res.json(q.log.all()));
+  app.get('/api/admin/activity', requireAdmin, (req, res) =>
+    res.json(req.query.slug ? activity.listFor(String(req.query.slug), req.query.limit) : activity.list(req.query.limit)),
+  );
 
-  registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin });
-  const mailboxes = registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin });
+  // Wejście na stronę (losowanie / lista / skrzynka / otwarty list) — zgłasza przeglądarka gościa.
+  const VISIT_AREAS = {
+    losowanie: (slug) => q.draw.get(slug)?.name,
+    lista: (slug) => db.prepare('SELECT name FROM lists WHERE slug = ?').get(slug)?.name,
+    skrzynka: (slug) => db.prepare('SELECT name FROM mailboxes WHERE slug = ?').get(slug)?.name,
+  };
+  app.post('/api/visit', (req, res) => {
+    const area = String(req.body?.area || '');
+    const slug = String(req.body?.slug || '');
+    const name = VISIT_AREAS[area]?.(slug);
+    if (!name) throw new HttpError(404, 'Nie znaleziono');
+    if (!isAdmin(req)) {
+      activity.log(req, cleanText(req.body?.kind, 40) || 'wejście', {
+        area,
+        slug,
+        name,
+        actor: req.body?.actor,
+        details: cleanText(req.body?.details, 200),
+      });
+    }
+    res.status(204).end();
+  });
+
+  registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity });
+  const mailboxes = registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity });
 
   app.use('/api', (_req, _res, next) => next(new HttpError(404, 'Nie znaleziono')));
 

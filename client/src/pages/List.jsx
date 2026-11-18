@@ -7,6 +7,7 @@ import Share from '../Share.jsx';
 import Psst from '../Psst.jsx';
 import { useTitle } from '../useTitle.js';
 import { formatDateTime } from '../date.js';
+import { useVisit } from '../visit.js';
 
 const AVATARS = ['🎅', '🤶', '🧝', '⛄', '🦌', '👼', '🐧', '🍪'];
 const lower = (s) => s.toLocaleLowerCase('pl');
@@ -43,6 +44,7 @@ export default function List({ asOrganizer = false }) {
   useTitle(data ? `🥟 ${data.name}` : null);
 
   const organizer = Boolean(data?.organizer);
+  useVisit('lista', slug, { kind: asOrganizer ? 'wejście organizatora' : 'wejście' });
 
   const load = useCallback(() => {
     api

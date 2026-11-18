@@ -1,7 +1,15 @@
+import { myName } from './storage.js';
+
+/** Imię z tej przeglądarki do dziennika aktywności (nagłówki muszą być ASCII → kodujemy). */
+const actorHeader = () => {
+  const name = myName.get();
+  return name ? { 'x-actor': encodeURIComponent(name) } : {};
+};
+
 async function request(method, path, { body, headers } = {}) {
   const res = await fetch(`/api${path}`, {
     method,
-    headers: { 'content-type': 'application/json', ...headers },
+    headers: { 'content-type': 'application/json', ...(method === 'GET' ? {} : actorHeader()), ...headers },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 204) return null;
@@ -63,4 +71,9 @@ export const api = {
   adminLists: (t) => request('GET', '/admin/lists', admin(t)),
   adminLog: (t) => request('GET', '/admin/log', admin(t)),
   adminMailboxes: (t) => request('GET', '/admin/mailboxes', admin(t)),
+  adminActivity: (t, slug) => request('GET', `/admin/activity${slug ? `?slug=${encodeURIComponent(slug)}` : ''}`, admin(t)),
+
+  /** Zgłoszenie wejścia / otwarcia listu do dziennika — po cichu, błędy ignorujemy. */
+  visit: (area, slug, extra = {}) =>
+    request('POST', '/visit', { body: { area, slug, ...extra }, headers: extra.adminToken ? admin(extra.adminToken).headers : {} }).catch(() => {}),
 };

@@ -26,7 +26,16 @@ const cleanBody = (value) =>
         .slice(0, LEN.body)
     : '';
 
-export function registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin }) {
+export function registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity }) {
+  const act = (req, box, kind, details, actor) =>
+    activity.log(req, kind, {
+      area: 'skrzynka',
+      slug: box.slug,
+      name: box.name,
+      actor,
+      details: (isOrganizer(req, box) ? '[organizator] ' : '') + details,
+    });
+
   const q = {
     box: db.prepare('SELECT slug, name, organizer_key, created_at FROM mailboxes WHERE slug = ?'),
     letters: db.prepare(
@@ -109,6 +118,7 @@ export function registerMailboxes(app, { db, crypto, requireAdmin, createLimiter
     if (q.count.get(box.slug).n >= MAX_LETTERS) throw new HttpError(400, 'Skrzynka jest pełna — Mikołaj ma już dość czytania 🎅');
     const key = randomToken(12);
     const { lastInsertRowid } = q.insertLetter.run(box.slug, author, body, crypto.hash(key));
+    act(req, box, 'wysłanie listu', `list nr ${lastInsertRowid}, ${body.length} znaków`, author);
     res.status(201).json({ id: Number(lastInsertRowid), key, letters: view(box.slug) });
   });
 
@@ -119,11 +129,13 @@ export function registerMailboxes(app, { db, crypto, requireAdmin, createLimiter
     if (!author) throw new HttpError(400, 'Podpisz się — od kogo jest list?');
     if (!body) throw new HttpError(400, 'Napisz coś w liście');
     q.updateLetter.run(author, body, letter.id);
+    act(req, req.box, 'poprawienie listu', `list nr ${letter.id} od ${letter.author}${author !== letter.author ? ` → podpis ${author}` : ''}`);
     res.json({ letters: view(req.box.slug) });
   });
 
   app.delete('/api/mailboxes/:slug/letters/:id', loadLetter, (req, res) => {
     q.deleteLetter.run(req.letter.id);
+    act(req, req.box, 'usunięcie listu', `list nr ${req.letter.id} od ${req.letter.author}`);
     res.json({ letters: view(req.box.slug) });
   });
 

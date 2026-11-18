@@ -141,8 +141,61 @@ function Dashboard({ token, onUnauthorized }) {
         </ul>
       )}
 
+      <ActivityLog token={token} guard={guard} />
       <AdminLog token={token} guard={guard} />
     </div>
+  );
+}
+
+const AREA_ICON = { losowanie: '🎁', lista: '🥟', skrzynka: '✉️' };
+
+/** Dziennik aktywności gości: kto (imię z przeglądarki), co, gdzie, kiedy, z jakiego IP. */
+function ActivityLog({ token, guard }) {
+  const [log, setLog] = useState(null);
+  const [filter, setFilter] = useState('');
+
+  const load = () => api.adminActivity(token).then(setLog).catch(guard);
+  function toggle(e) {
+    if (e.currentTarget.open && !log) load();
+  }
+
+  const q = filter.trim().toLocaleLowerCase('pl');
+  const shown = (log || []).filter(
+    (e) => !q || [e.kind, e.name, e.actor, e.details, e.ip].some((v) => v && v.toLocaleLowerCase('pl').includes(q)),
+  );
+
+  return (
+    <details className="admin-log" onToggle={toggle}>
+      <summary>👀 Aktywność gości</summary>
+      <p className="hint">
+        Imię to to, co ktoś wpisał w tej przeglądarce — nie jest sprawdzane. Dziennik nie zawiera wyników losowania.
+        Wpisy starsze niż 120 dni znikają same.
+      </p>
+      <div className="copy-row">
+        <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Szukaj: imię, nazwa, IP…" aria-label="Filtruj aktywność" />
+        <button type="button" className="btn ghost small" onClick={load}>Odśwież</button>
+      </div>
+      {!log ? (
+        <p>Wczytuję…</p>
+      ) : shown.length === 0 ? (
+        <p className="muted">Nic nie znaleziono.</p>
+      ) : (
+        <ul className="status activity">
+          {shown.map((e) => (
+            <li key={e.id}>
+              <span className="who">
+                <span aria-hidden="true">{AREA_ICON[e.area] ?? '•'}</span> {e.kind}
+              </span>
+              <span className="when">{formatDateTime(e.at)}</span>
+              <span className="log-details">
+                <strong>{e.actor || 'nieznany'}</strong> · {e.name} {e.details && <>· {e.details}</>}
+              </span>
+              <span className="log-meta" title={e.userAgent || ''}>IP {e.ip || '?'}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </details>
   );
 }
 

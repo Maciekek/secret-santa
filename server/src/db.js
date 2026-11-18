@@ -68,6 +68,21 @@ export function openDb(dbPath) {
 
     CREATE INDEX IF NOT EXISTS idx_letters_mailbox ON letters(mailbox_slug);
 
+    -- Dziennik aktywności gości (kto co robił) — patrz activity.js
+    CREATE TABLE IF NOT EXISTS activity_log (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      at         TEXT NOT NULL DEFAULT (datetime('now')),
+      kind       TEXT NOT NULL,             -- np. „wejście”, „dopisanie”, „otwarcie listu”
+      area       TEXT NOT NULL,             -- losowanie | lista | skrzynka
+      slug       TEXT NOT NULL,
+      name       TEXT,                      -- nazwa losowania / listy / skrzynki (zostaje po usunięciu)
+      actor      TEXT,                      -- imię wpisane przez gościa (niezweryfikowane)
+      details    TEXT NOT NULL DEFAULT '',
+      ip         TEXT,
+      user_agent TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_activity_slug ON activity_log(slug);
+
     -- Dziennik działań admina (podglądy par, usunięcia) — przeżywa restarty kontenera.
     CREATE TABLE IF NOT EXISTS admin_log (
       id      INTEGER PRIMARY KEY AUTOINCREMENT,

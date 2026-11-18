@@ -64,3 +64,36 @@ test('dziennik admina: podgląd pary i usunięcia zostają w bazie', () =>
     assert.match(log[2].details, /Rodzina .* — Ala/);
     assert.ok(log.every((e) => !/Ola|Ela/.test(e.details)), 'dziennik nie zdradza, kogo wylosowano');
   }));
+
+test('dziennik aktywności: wejścia, losowania, wpisy, listy — z imieniem i IP, bez wyników losowania', () =>
+  withServer({}, async (call) => {
+    const { token } = (await call('POST', '/admin/login', { password: 'tajne' })).body;
+    const admin = { authorization: `Bearer ${token}` };
+    const actor = (n) => ({ 'x-actor': encodeURIComponent(n) });
+
+    const { slug: d } = (await call('POST', '/draws', { name: 'Rodzina', participants: ['Ala', 'Ola', 'Ela'] })).body;
+    const [ala] = (await call('GET', `/draws/${d}`)).body.participants;
+    assert.equal((await call('POST', '/visit', { area: 'losowanie', slug: d }, actor('Babcia Hela'))).status, 204);
+    const drawn = (await call('POST', `/draws/${d}/draw`, { participantId: ala.id })).body;
+
+    const { slug: l } = (await call('POST', '/lists', { name: 'Pierogi' })).body;
+    await call('POST', `/lists/${l}/items`, { title: 'Barszcz', who: 'Józek' });
+    const { slug: m } = (await call('POST', '/mailboxes', { name: 'Poczta' })).body;
+    const letter = (await call('POST', `/mailboxes/${m}/letters`, { author: 'Zosia', body: 'Rower' })).body;
+    await call('POST', '/visit', { area: 'skrzynka', slug: m, kind: 'otwarcie listu', details: `list nr ${letter.id} od Zosia` }, actor('Staś'));
+    assert.equal((await call('POST', '/visit', { area: 'lista', slug: 'nie-ma' })).status, 404);
+
+    assert.equal((await call('GET', '/admin/activity')).status, 401);
+    const log = (await call('GET', '/admin/activity', null, admin)).body;
+    const kinds = log.map((e) => `${e.kind}|${e.actor}`).reverse();
+    assert.deepEqual(kinds, [
+      'wejście|Babcia Hela',
+      'losowanie|Ala',
+      'dopisanie|Józek',
+      'wysłanie listu|Zosia',
+      'otwarcie listu|Staś',
+    ]);
+    assert.ok(log.every((e) => e.ip), 'zapisuje IP');
+    assert.ok(!JSON.stringify(log).includes(drawn.target === 'Ala' ? '§' : drawn.target + '"'), 'nie zdradza wyniku');
+    assert.equal((await call('GET', `/admin/activity?slug=${l}`, null, admin)).body.length, 1);
+  }));

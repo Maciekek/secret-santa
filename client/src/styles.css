@@ -575,3 +575,6 @@ textarea { resize: vertical; line-height: 1.5; }
 .add-row::before { content: counter(rzecz) '.'; font-weight: 800; min-width: 1.4rem; color: var(--muted); }
 .add-row-fields { flex: 1; min-width: 0; display: grid; gap: 0.35rem; }
 .add-more { text-align: right; }
+.log-meta { flex-basis: 100%; color: var(--muted); font-size: 0.8rem; font-family: ui-monospace, monospace; }
+.activity { margin-top: 0.75rem; }
+.admin-log .copy-row { margin-top: 0.5rem; }

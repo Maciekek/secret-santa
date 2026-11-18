@@ -95,6 +95,13 @@ instrukcja w [`deploy/README.md`](deploy/README.md).
   w oknie trafia do logu jako `[limit] …`.
 - Dziennik admina (tabela `admin_log`, widok „📜 Dziennik admina” w `/admin`): podglądy par, losowanie od nowa,
   usunięcia. Zapisuje tylko, czyją parę podejrzano — nigdy wynik.
+- Dziennik aktywności gości (tabela `activity_log`, widok „👀 Aktywność gości” w `/admin`): wejścia na strony,
+  losowania (bez wyniku), dopisania / zmiany / usunięcia na listach, wysłane, poprawione i otwarte listy do Mikołaja.
+  Zapisuje imię zapamiętane w przeglądarce (niezweryfikowane, nagłówek `X-Actor`), IP (`CF-Connecting-IP` albo
+  `X-Forwarded-For`) i przeglądarkę. Sprząta się sam: 120 dni / 20 000 wpisów.
+- Logi systemowe (`docker logs secret-santa`): każde żądanie zmieniające dane (`[api] POST … 201 12ms ip=…`)
+  i każdy wpis aktywności (`[aktywność] …`). Rotacja 5 × 10 MB; po `update.sh` (nowy kontener) zaczynają się od nowa —
+  trwała historia jest w bazie.
 
 ## SEO / Open Graph
 

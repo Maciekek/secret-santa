@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { adminToken, letterKeys, links, myMailboxes, myName, readLetters } from '../storage.js';
@@ -7,6 +7,7 @@ import Share from '../Share.jsx';
 import Psst from '../Psst.jsx';
 import { useTitle } from '../useTitle.js';
 import { formatDateTime } from '../date.js';
+import { useVisit } from '../visit.js';
 
 const MAX_BODY = 3000;
 
@@ -40,6 +41,8 @@ export default function Mailbox({ asOrganizer = false, view = 'write' }) {
   useTitle(data ? (view === 'inbox' ? `📬 ${data.name} — skrzynka odbiorcza` : `✉️ ${data.name}`) : null);
 
   const organizer = Boolean(data?.organizer);
+  const loggedOpen = useRef(null);
+  useVisit('skrzynka', letterId ? null : slug, { kind: view === 'inbox' ? 'wejście do skrzynki odbiorczej' : 'wejście (pisanie listu)' });
 
   const load = useCallback(() => {
     api
@@ -101,7 +104,14 @@ export default function Mailbox({ asOrganizer = false, view = 'write' }) {
 
   // Otwarty list (także z linku) = przeczytany w tej przeglądarce.
   useEffect(() => {
-    if (!openId || !data?.letters.some((l) => l.id === openId)) return;
+    if (!openId) loggedOpen.current = null;
+    const letter = data?.letters.find((l) => l.id === openId);
+    if (!openId || !letter) return;
+    // do dziennika raz na otwarcie (dane odświeżają się co 15 s — nie logujemy wtedy ponownie)
+    if (loggedOpen.current !== openId) {
+      loggedOpen.current = openId;
+      api.visit('skrzynka', slug, { kind: 'otwarcie listu', details: `list nr ${letter.id} od ${letter.author}`, adminToken: adminToken.get() });
+    }
     readLetters.add(slug, openId);
     setRead(readLetters.all(slug));
   }, [openId, data, slug]);
