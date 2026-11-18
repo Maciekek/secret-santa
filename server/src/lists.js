@@ -15,7 +15,7 @@ import { headerActor } from './activity.js';
 const MAX_ITEMS = 200;
 const LEN = { name: 60, title: 80, note: 120, who: 60 };
 
-export function registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity }) {
+export function registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity, notifier, siteUrl }) {
   /** Wpis do dziennika aktywności; działania organizatora oznaczamy. */
   const act = (req, kind, details, actor) =>
     activity.log(req, kind, {
@@ -153,6 +153,14 @@ export function registerLists(app, { db, crypto, requireAdmin, createLimiter, lo
     req.list = list;
     req.organizer = isOrganizer(req, list);
     act(req, requested ? 'dodanie potrzebnej rzeczy' : 'dopisanie', `${title}${who ? ` — przynosi ${who}` : ''}${note ? ` (uwagi: ${note})` : ''}`, headerActor(req) || who);
+    if (who && !requested) {
+      notifier.notify('lista', {
+        title: `🥟 ${who} przyniesie: ${title}`,
+        message: list.name,
+        share: `🥟 ${who} przyniesie: ${title}. Zobaczcie, czego jeszcze brakuje: ${siteUrl(req)}/l/${list.slug}`,
+        url: `${siteUrl(req)}/l/${list.slug}`,
+      });
+    }
     res.status(201).json({ id: Number(lastInsertRowid), key, items: view(list.slug) });
   });
 

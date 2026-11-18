@@ -26,7 +26,7 @@ const cleanBody = (value) =>
         .slice(0, LEN.body)
     : '';
 
-export function registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity }) {
+export function registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity, notifier, siteUrl }) {
   const act = (req, box, kind, details, actor) =>
     activity.log(req, kind, {
       area: 'skrzynka',
@@ -119,6 +119,13 @@ export function registerMailboxes(app, { db, crypto, requireAdmin, createLimiter
     const key = randomToken(12);
     const { lastInsertRowid } = q.insertLetter.run(box.slug, author, body, crypto.hash(key));
     act(req, box, 'wysłanie listu', `list nr ${lastInsertRowid}, ${body.length} znaków`, author);
+    const letterUrl = `${siteUrl(req)}/p/${box.slug}/skrzynka/${lastInsertRowid}`;
+    notifier.notify('listy', {
+      title: `✉️ Nowy list od: ${author}`,
+      message: `${box.name}: „${body.replace(/\s+/g, ' ').slice(0, 100)}${body.length > 100 ? '…' : ''}”`,
+      share: `📬 ${author} napisał(a) list do Świętego Mikołaja! Zajrzyjcie do skrzynki: ${siteUrl(req)}/p/${box.slug}/skrzynka`,
+      url: letterUrl,
+    });
     res.status(201).json({ id: Number(lastInsertRowid), key, letters: view(box.slug) });
   });
 
