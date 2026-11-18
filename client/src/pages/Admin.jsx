@@ -190,6 +190,9 @@ function ActivityLog({ token, guard }) {
               <span className="log-details">
                 <strong>{e.actor || 'nieznany'}</strong> · {e.name} {e.details && <>· {e.details}</>}
               </span>
+              {e.area === 'skrzynka' && e.refId && (
+                <Link className="log-link" to={`/p/${e.slug}/organizator/skrzynka/${e.refId}`}>📖 Otwórz ten list</Link>
+              )}
               <span className="log-meta" title={e.userAgent || ''}>IP {e.ip || '?'}</span>
             </li>
           ))}

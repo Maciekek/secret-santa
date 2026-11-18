@@ -25,13 +25,13 @@ export const clientIp = (req) => (req.get('cf-connecting-ip') || req.ip || '').r
 
 export function createActivity(db) {
   const insert = db.prepare(
-    'INSERT INTO activity_log (kind, area, slug, name, actor, details, ip, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO activity_log (kind, area, slug, name, actor, details, ip, user_agent, ref_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
   );
   const list = db.prepare(
-    'SELECT id, at, kind, area, slug, name, actor, details, ip, user_agent AS userAgent FROM activity_log ORDER BY id DESC LIMIT ?',
+    'SELECT id, at, kind, area, slug, name, actor, details, ip, user_agent AS userAgent, ref_id AS refId FROM activity_log ORDER BY id DESC LIMIT ?',
   );
   const listFor = db.prepare(
-    'SELECT id, at, kind, area, slug, name, actor, details, ip, user_agent AS userAgent FROM activity_log WHERE slug = ? ORDER BY id DESC LIMIT ?',
+    'SELECT id, at, kind, area, slug, name, actor, details, ip, user_agent AS userAgent, ref_id AS refId FROM activity_log WHERE slug = ? ORDER BY id DESC LIMIT ?',
   );
   const pruneOld = db.prepare(`DELETE FROM activity_log WHERE at < datetime('now', '-${KEEP_DAYS} days')`);
   const pruneMany = db.prepare(
@@ -44,11 +44,11 @@ export function createActivity(db) {
    * @param kind  co się stało, np. „dopisanie”, „otwarcie listu”
    * @param area  'losowanie' | 'lista' | 'skrzynka'
    */
-  function log(req, kind, { area, slug, name, actor, details = '' }) {
+  function log(req, kind, { area, slug, name, actor, details = '', refId = null }) {
     const who = cleanText(actor, 60) || cleanText(headerActor(req), 60) || null;
     const ip = clientIp(req);
     const ua = (req.get('user-agent') || '').slice(0, 200);
-    insert.run(kind, area, slug, name ?? null, who, details, ip, ua);
+    insert.run(kind, area, slug, name ?? null, who, details, ip, ua, refId);
     console.log(`[aktywność] ${kind} | ${area} ${name ?? ''} (${slug}) | kto: ${who ?? '—'} | ${details} | ip=${ip}`);
     if (++inserts % 200 === 0) {
       pruneOld.run();

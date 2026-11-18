@@ -341,25 +341,32 @@ export function createApp({ db, crypto, config }) {
     lista: (slug) => db.prepare('SELECT name FROM lists WHERE slug = ?').get(slug)?.name,
     skrzynka: (slug) => db.prepare('SELECT name FROM mailboxes WHERE slug = ?').get(slug)?.name,
   };
+  let mailboxes; // ustawiane niżej (registerMailboxes)
   app.post('/api/visit', (req, res) => {
     const area = String(req.body?.area || '');
     const slug = String(req.body?.slug || '');
     const name = VISIT_AREAS[area]?.(slug);
     if (!name) throw new HttpError(404, 'Nie znaleziono');
     if (!isAdmin(req)) {
-      activity.log(req, cleanText(req.body?.kind, 40) || 'wejście', {
+      // Otwarty list: opis budujemy na serwerze (od kogo + początek treści), nie ufamy temu, co przyśle przeglądarka.
+      const letterId = area === 'skrzynka' ? Number(req.body?.letterId) || null : null;
+      const letter = letterId && mailboxes.findLetter(slug, letterId);
+      activity.log(req, letter ? 'otwarcie listu' : cleanText(req.body?.kind, 40) || 'wejście', {
         area,
         slug,
         name,
         actor: req.body?.actor,
-        details: cleanText(req.body?.details, 200),
+        refId: letter ? letter.id : null,
+        details: letter
+          ? `list nr ${letter.id} od ${letter.author}: „${letter.body.replace(/\s+/g, ' ').slice(0, 80)}${letter.body.length > 80 ? '…' : ''}”`
+          : cleanText(req.body?.details, 200),
       });
     }
     res.status(204).end();
   });
 
   registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity });
-  const mailboxes = registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity });
+  mailboxes = registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity });
 
   app.use('/api', (_req, _res, next) => next(new HttpError(404, 'Nie znaleziono')));
 

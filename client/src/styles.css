@@ -578,3 +578,4 @@ textarea { resize: vertical; line-height: 1.5; }
 .log-meta { flex-basis: 100%; color: var(--muted); font-size: 0.8rem; font-family: ui-monospace, monospace; }
 .activity { margin-top: 0.75rem; }
 .admin-log .copy-row { margin-top: 0.5rem; }
+.log-link { flex-basis: 100%; color: var(--green); font-weight: 700; font-size: 0.95rem; }

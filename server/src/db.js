@@ -79,7 +79,8 @@ export function openDb(dbPath) {
       actor      TEXT,                      -- imię wpisane przez gościa (niezweryfikowane)
       details    TEXT NOT NULL DEFAULT '',
       ip         TEXT,
-      user_agent TEXT
+      user_agent TEXT,
+      ref_id     INTEGER                    -- np. id otwartego listu
     );
     CREATE INDEX IF NOT EXISTS idx_activity_slug ON activity_log(slug);
 
@@ -91,6 +92,10 @@ export function openDb(dbPath) {
       details TEXT NOT NULL
     );
   `);
+  // Proste migracje: kolumny dodane po pierwszym wdrożeniu tabeli.
+  const hasColumn = (table, col) => db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === col);
+  if (!hasColumn('activity_log', 'ref_id')) db.exec('ALTER TABLE activity_log ADD COLUMN ref_id INTEGER');
+
   return db;
 }
 

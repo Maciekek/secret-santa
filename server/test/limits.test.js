@@ -80,7 +80,7 @@ test('dziennik aktywności: wejścia, losowania, wpisy, listy — z imieniem i I
     await call('POST', `/lists/${l}/items`, { title: 'Barszcz', who: 'Józek' });
     const { slug: m } = (await call('POST', '/mailboxes', { name: 'Poczta' })).body;
     const letter = (await call('POST', `/mailboxes/${m}/letters`, { author: 'Zosia', body: 'Rower' })).body;
-    await call('POST', '/visit', { area: 'skrzynka', slug: m, kind: 'otwarcie listu', details: `list nr ${letter.id} od Zosia` }, actor('Staś'));
+    await call('POST', '/visit', { area: 'skrzynka', slug: m, letterId: letter.id, details: 'zmyślone' }, actor('Staś'));
     assert.equal((await call('POST', '/visit', { area: 'lista', slug: 'nie-ma' })).status, 404);
 
     assert.equal((await call('GET', '/admin/activity')).status, 401);
@@ -94,6 +94,9 @@ test('dziennik aktywności: wejścia, losowania, wpisy, listy — z imieniem i I
       'otwarcie listu|Staś',
     ]);
     assert.ok(log.every((e) => e.ip), 'zapisuje IP');
+    const opened = log.find((e) => e.kind === 'otwarcie listu');
+    assert.equal(opened.refId, letter.id);
+    assert.equal(opened.details, `list nr ${letter.id} od Zosia: „Rower”`, 'opis z serwera, nie z przeglądarki');
     assert.ok(!JSON.stringify(log).includes(drawn.target === 'Ala' ? '§' : drawn.target + '"'), 'nie zdradza wyniku');
     assert.equal((await call('GET', `/admin/activity?slug=${l}`, null, admin)).body.length, 1);
   }));

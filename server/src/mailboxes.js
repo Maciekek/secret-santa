@@ -141,5 +141,8 @@ export function registerMailboxes(app, { db, crypto, requireAdmin, createLimiter
 
   app.get('/api/admin/mailboxes', requireAdmin, (_req, res) => res.json(q.allBoxes.all()));
 
-  return { findName: (slug) => q.box.get(slug)?.name ?? null };
+  return {
+    findName: (slug) => q.box.get(slug)?.name ?? null,
+    findLetter: (slug, id) => q.letter.get(slug, id) ?? null,
+  };
 }

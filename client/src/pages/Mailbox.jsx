@@ -110,7 +110,7 @@ export default function Mailbox({ asOrganizer = false, view = 'write' }) {
     // do dziennika raz na otwarcie (dane odświeżają się co 15 s — nie logujemy wtedy ponownie)
     if (loggedOpen.current !== openId) {
       loggedOpen.current = openId;
-      api.visit('skrzynka', slug, { kind: 'otwarcie listu', details: `list nr ${letter.id} od ${letter.author}`, adminToken: adminToken.get() });
+      api.visit('skrzynka', slug, { letterId: letter.id, adminToken: adminToken.get() });
     }
     readLetters.add(slug, openId);
     setRead(readLetters.all(slug));
