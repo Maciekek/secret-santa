@@ -72,16 +72,6 @@ docker run --rm -v secret-santa_gwiazdka-data:/data -v "$PWD/backups":/backups a
 docker compose start app
 ```
 
-## Powiadomienia na telefon (ntfy → WhatsApp)
-
-1. Zainstaluj aplikację **ntfy** (Google Play / App Store) i dodaj subskrypcję tematu, np. `gwiazdka-k7m2qx9p`
-   (serwer `ntfy.sh`). Temat działa jak hasło — kto go zna, widzi powiadomienia.
-2. W `deploy/.env`: `NTFY_TOPIC=gwiazdka-k7m2qx9p` (opcjonalnie `NTFY_EVENTS=listy,lista,losowanie`), potem `./update.sh`.
-3. Przy nowym liście do Mikołaja przychodzi push. Kliknięcie otwiera WhatsApp z gotową wiadomością
-   („📬 Zosia napisała list… link do skrzynki”) — wybierasz rodzinną grupę i wysyłasz.
-
-W logach przy starcie: `[ntfy] powiadomienia włączone: …`.
-
 ## Konkretna wersja
 
 `SECRET_SANTA_TAG=<sha commita>` (albo `1.0.0` z taga `v1.0.0`) w `deploy/.env`, potem `deploy/update.sh`.

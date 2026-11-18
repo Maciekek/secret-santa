@@ -10,7 +10,6 @@ import { HttpError, bearer, cleanText, rateLimit } from './http.js';
 import { registerLists } from './lists.js';
 import { registerMailboxes } from './mailboxes.js';
 import { clientIp, createActivity } from './activity.js';
-import { createNotifier } from './notify.js';
 import { readableSlug } from './slug.js';
 
 const MIN_PEOPLE = 3;
@@ -36,9 +35,6 @@ export function createApp({ db, crypto, config }) {
   });
 
   const activity = createActivity(db);
-  const notifier = config.notifier ?? createNotifier();
-  /** Publiczny adres do linków w powiadomieniach (bez PUBLIC_URL — z żądania). */
-  const siteUrl = (req) => config.publicUrl || `${req.protocol}://${req.get('host')}`;
 
   // ---------- dostęp do danych ----------
 
@@ -230,13 +226,6 @@ export function createApp({ db, crypto, config }) {
     });
     // bez wyniku — dziennik nie może zdradzać par
     activity.log(req, 'losowanie', { area: 'losowanie', slug: draw.slug, name: draw.name, actor: result.name });
-    const left = q.participants.all(draw.slug).filter((p) => !p.drawn_at).length;
-    notifier.notify('losowanie', {
-      title: `🎁 ${result.name} już wylosował(a)`,
-      message: `${draw.name}: ${left ? `zostało jeszcze ${left}` : 'wszyscy wylosowali! 🎉'}`,
-      share: left ? `🎁 ${draw.name} — kto jeszcze nie losował, zapraszamy: ${siteUrl(req)}/d/${draw.slug}` : undefined,
-      url: `${siteUrl(req)}/d/${draw.slug}`,
-    });
     res.json(result);
   });
 
@@ -376,8 +365,8 @@ export function createApp({ db, crypto, config }) {
     res.status(204).end();
   });
 
-  registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity, notifier, siteUrl });
-  mailboxes = registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity, notifier, siteUrl });
+  registerLists(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity });
+  mailboxes = registerMailboxes(app, { db, crypto, requireAdmin, createLimiter, logAdmin, isAdmin, activity });
 
   app.use('/api', (_req, _res, next) => next(new HttpError(404, 'Nie znaleziono')));
 
